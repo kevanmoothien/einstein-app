@@ -1,0 +1,27 @@
+<div class="container">
+  <h1 class="title">
+    {{ 'PAGES.HOME.TITLE' | translate }}
+  </h1>
+
+
+  <a [routerLink]="['/details', id]">{{ 'PAGES.HOME.GO_TO_DETAIL' | translate }}</a>
+
+  <button (click)="resetDatabase()" class="btn btn-danger">Reset Database</button>
+
+  <div class="row">
+    <div class="col">
+      <form #myform="ngForm" (ngSubmit)="onSubmit(myform)">
+        <div class="form-group" >
+          <label for="email">Email address</label>
+          <input type="email" class="form-control" id="email" name="email" placeholder="Enter email" [(ngModel)]="email">
+        </div>
+        <div class="form-group">
+          <label for="secret">Einstein Secret</label>
+          <textarea class="form-control" id="secret" name="secret" rows="3" [(ngModel)]="secret"></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+      </form>
+    </div>
+  </div>
+
+</div>

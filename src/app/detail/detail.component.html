@@ -1,0 +1,24 @@
+<div class="container-fluid">
+  <h1 class="title">
+    {{ 'PAGES.DETAIL.TITLE' | translate }}
+  </h1>
+
+  <input type="file" multiple #file (change)="fileChange($event)"/>
+
+  <button (click)="chooseImages()" class="btn btn-success">Choose Images</button>
+
+
+
+  <a routerLink="/">{{ 'PAGES.DETAIL.BACK_TO_HOME' | translate }}</a>
+
+  <div class="row">
+    <div class="col">
+      mo icici
+      <ul>
+        <li *ngFor="let image of images">
+          {{image.name}} -- {{image.path}}
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>
