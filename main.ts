@@ -192,4 +192,21 @@ ipcMain.on("loadConfiguration", (event, arg) => {
   });
 });
 
+ipcMain.on("createProject", (event, arg) => {
+  db.createTable('project', dblocation, () => {
+    if (db.valid('project', dblocation)) {
+      arg.uuid = uuidv4()
+      db.insertTableContent('project', dblocation, arg, (success: boolean, msg: string) => {
+        // success - boolean, tells if the call is successful
+        console.log("Success: " + success);
+        console.log("Message: " + msg);
+        if (success) {
+          event.reply('projectCreated', arg);
+        }
+      });
+    }
+  });
+
+});
+
 

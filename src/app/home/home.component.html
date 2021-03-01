@@ -23,5 +23,16 @@
       </form>
     </div>
   </div>
+  <div class="row">
+    <div class="col">
+      <form #projectForm="ngForm" (ngSubmit)="createProject(projectForm)">
+        <div class="form-group" >
+          <label for="project">Project Name</label>
+          <input type="text" class="form-control" id="project" name="project" placeholder="Project name" [(ngModel)]="project">
+        </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+      </form>
+    </div>
+  </div>
 
 </div>

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import {ChangeDetectorRef, Component, OnInit, ViewChild} from '@angular/core';
 import { Router } from '@angular/router';
 import {ElectronService} from "../core/services";
 import {NgForm} from '@angular/forms';
@@ -12,8 +12,11 @@ export class HomeComponent implements OnInit {
   id: any;
   email: string;
   secret: string;
+  project: string;
 
-  constructor(private router: Router, private electronService: ElectronService) {
+  @ViewChild('project') projectName;
+
+  constructor(private router: Router, private electronService: ElectronService, private chRef: ChangeDetectorRef) {
     this.id = 'kevan';
 
 
@@ -23,11 +26,16 @@ export class HomeComponent implements OnInit {
       this.electronService.ipcRenderer.on('credentialSaved', this.credentialSaved);
 
       this.electronService.ipcRenderer.on('configurationLoaded', (event, message)=> {
-        console.log(">>>>>", message);
+        console.log(">>>>> configuration loaded", message);
         this.email = message[0].email;
         this.secret = message[0].secret;
 
-
+        chRef.detectChanges();
+      });
+      this.electronService.ipcRenderer.on('projectCreated', (event, message)=> {
+        console.log(">>>>> project created: ", message);
+        this.project = '';
+        chRef.detectChanges();
       });
 
       this.electronService.ipcRenderer.send('loadConfiguration');
@@ -56,6 +64,10 @@ export class HomeComponent implements OnInit {
 
   credentialSaved () {
     console.log('credential saved');
+  }
+
+  createProject (myform: NgForm) {
+    this.electronService.ipcRenderer.send('createProject', myform.value);
   }
 
 }
