@@ -195,7 +195,7 @@ ipcMain.on("loadConfiguration", (event, arg) => {
 ipcMain.on("createProject", (event, arg) => {
   db.createTable('project', dblocation, () => {
     if (db.valid('project', dblocation)) {
-      arg.uuid = uuidv4()
+      arg.uuid = uuidv4();
       db.insertTableContent('project', dblocation, arg, (success: boolean, msg: string) => {
         // success - boolean, tells if the call is successful
         console.log("Success: " + success);
@@ -206,7 +206,24 @@ ipcMain.on("createProject", (event, arg) => {
       });
     }
   });
+});
 
+ipcMain.on("listProjects", (event, arg) => {
+  if (db.valid('project', dblocation)) {
+    db.getAll('project', dblocation, (success, data)=>{
+      event.reply('projectListed', data);
+    });
+  }
+});
+
+ipcMain.on("listProject", (event, arg) => {
+  if (db.valid('project', dblocation)) {
+    console.log('............', arg)
+    db.getRows('project', dblocation, { uuid: arg.id }, (success, result) => {
+      event.reply('listProjectCompleted', result);
+    });
+
+  }
 });
 
 

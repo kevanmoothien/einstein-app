@@ -1,15 +1,14 @@
 <div class="container">
   <h1 class="title">
-    {{ 'PAGES.HOME.TITLE' | translate }}
+    Einstein Vision App
   </h1>
 
+  <button (click)="resetDatabase()" class="btn btn-danger btn-sm">Reset Database</button>
 
-  <a [routerLink]="['/details', id]">{{ 'PAGES.HOME.GO_TO_DETAIL' | translate }}</a>
-
-  <button (click)="resetDatabase()" class="btn btn-danger">Reset Database</button>
+  <hr>
 
   <div class="row">
-    <div class="col">
+    <div class="col-6">
       <form #myform="ngForm" (ngSubmit)="onSubmit(myform)">
         <div class="form-group" >
           <label for="email">Email address</label>
@@ -23,15 +22,43 @@
       </form>
     </div>
   </div>
+
+  <hr>
+
   <div class="row">
     <div class="col">
-      <form #projectForm="ngForm" (ngSubmit)="createProject(projectForm)">
-        <div class="form-group" >
-          <label for="project">Project Name</label>
+      <form class="form-inline" #projectForm="ngForm" (ngSubmit)="createProject(projectForm)">
+        <div class="form-group mb-2">
+          <label for="project" class="sr-only">project</label>
           <input type="text" class="form-control" id="project" name="project" placeholder="Project name" [(ngModel)]="project">
         </div>
         <button type="submit" class="btn btn-primary">Submit</button>
       </form>
+    </div>
+  </div>
+
+  <hr>
+
+  <div class="row">
+    <div class="col">
+      <table class="table table-sm">
+        <thead>
+        <tr>
+          <th scope="col">#</th>
+          <th scope="col">Project Name</th>
+          <th scope="col">Action</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr *ngFor="let p of projects">
+          <th scope="row">{{p.id}}</th>
+          <td>{{p.name}}</td>
+          <td>
+            <a [routerLink]="['/details', p.uuid]">View</a>
+          </td>
+        </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 

@@ -1,15 +1,14 @@
 <div class="container-fluid">
-  <h1 class="title">
-    {{ 'PAGES.DETAIL.TITLE' | translate }}
-  </h1>
+  <a routerLink="/">Back to home</a>
+  <hr>
+  <h2 class="title">
+    Project: {{projectName}}
+  </h2>
 
-  <input type="file" multiple #file (change)="fileChange($event)"/>
-
+  <hr>
   <button (click)="chooseImages()" class="btn btn-success">Choose Images</button>
 
-
-
-  <a routerLink="/">{{ 'PAGES.DETAIL.BACK_TO_HOME' | translate }}</a>
+  <hr>
 
   <div class="row">
     <div class="col">

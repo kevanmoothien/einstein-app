@@ -1,6 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import {Component, NgZone, OnInit} from '@angular/core';
 import * as _ from 'lodash';
 import { ElectronService } from "../core/services";
+import {ActivatedRoute} from "@angular/router";
 
 @Component({
   selector: 'app-detail',
@@ -8,29 +9,40 @@ import { ElectronService } from "../core/services";
   styleUrls: ['./detail.component.scss']
 })
 export class DetailComponent implements OnInit {
-  id = 'Kevan';
+  id: string;
   images: File[];
+  projectName: any;
+  private sub: any;
 
-  constructor(private electronService: ElectronService) {
+  constructor(private electronService: ElectronService, private route: ActivatedRoute, private zone: NgZone) {
+    this.zone.run(() => {
+      this.id = this.route.snapshot.paramMap.get('id');
+      console.log('######', this.id );
+    });
+
     if (electronService.isElectron) {
       this.electronService.ipcRenderer.on('chosenFile', this.processImages);
+      this.electronService.ipcRenderer.on('listProjectCompleted', (event, data)=>{
+        console.log(">>>> **** ", data);
+
+      });
+
+      this.electronService.ipcRenderer.send('listProject', { id: this.id });
+
     }
   }
 
-  ngOnInit(): void { }
+  ngOnInit() {
+    this.id = this.route.snapshot.paramMap.get('id');
+  }
+
+  ngOnDestroy() {
+
+  }
 
   processImages(event, images: any) {
     _.each(images, (image)=> {
       console.log(image);
-    });
-    // const src = `data:image/jpg;base64,${base64}`;
-    // console.log(src);
-  }
-
-  fileChange(file) {
-    this.images = file.target.files;
-    _.each(this.images, (image)=> {
-      console.log(image.name);
     });
   }
 
