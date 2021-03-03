@@ -16,8 +16,6 @@ export class HomeComponent implements OnInit {
 
   projects: any;
 
-  @ViewChild('project') projectName;
-
   constructor(private router: Router, private zone: NgZone, private electronService: ElectronService) {
     this.id = 'kevan';
 
@@ -27,15 +25,20 @@ export class HomeComponent implements OnInit {
 
       this.electronService.ipcRenderer.on('configurationLoaded', (event, message)=> {
         this.zone.run(() => {
-          this.email = message[0].email;
-          this.secret = message[0].secret;
-        })
+          try {
+            this.email = message[0].email;
+            this.secret = message[0].secret;
+          }
+          catch(e) {
+            console.log('secret not found');
+          }
+        });
       });
       this.electronService.ipcRenderer.on('projectCreated', (event, message)=> {
         this.zone.run(() => {
           this.project = '';
           this.projects.push(message);
-        })
+        });
       });
 
       this.electronService.ipcRenderer.send('loadConfiguration');
@@ -44,7 +47,7 @@ export class HomeComponent implements OnInit {
       this.electronService.ipcRenderer.on('projectListed', (event, message)=> {
         this.zone.run(() => {
           this.projects = message;
-        })
+        });
       });
     }
   }
@@ -76,5 +79,4 @@ export class HomeComponent implements OnInit {
   createProject (myform: NgForm) {
     this.electronService.ipcRenderer.send('createProject', { name: myform.value.project });
   }
-
 }

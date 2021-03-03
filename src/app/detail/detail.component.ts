@@ -10,7 +10,7 @@ import {ActivatedRoute} from "@angular/router";
 })
 export class DetailComponent implements OnInit {
   id: string;
-  images: File[];
+  images: [];
   projectName: any;
   private sub: any;
 
@@ -24,10 +24,21 @@ export class DetailComponent implements OnInit {
       this.electronService.ipcRenderer.on('chosenFile', this.processImages);
       this.electronService.ipcRenderer.on('listProjectCompleted', (event, data)=>{
         console.log(">>>> **** ", data);
+        this.zone.run(() => {
+          this.projectName = data[0].name;
+        });
+      });
 
+      this.electronService.ipcRenderer.on('listProjectImagesCompleted', (event, data)=>{
+        console.log(">>>> **** images: ", data);
+
+        this.zone.run(() => {
+          this.images = data;
+        });
       });
 
       this.electronService.ipcRenderer.send('listProject', { id: this.id });
+      this.electronService.ipcRenderer.send('listProjectImages', { project_id: this.id });
 
     }
   }
@@ -47,7 +58,7 @@ export class DetailComponent implements OnInit {
   }
 
   chooseImages () {
-    this.electronService.ipcRenderer.send('chooseFile');
+    this.electronService.ipcRenderer.send('chooseFile', { project_id: this.id });
   }
 
 }

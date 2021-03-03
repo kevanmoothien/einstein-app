@@ -26,7 +26,8 @@ function createWindow(): BrowserWindow {
       nodeIntegration: true,
       allowRunningInsecureContent: (serve) ? true : false,
       contextIsolation: false,  // false if you want to run 2e2 test with Spectron
-      enableRemoteModule : true // true if you want to run 2e2 test  with Spectron or use remote module in renderer context (ie. Angular)
+      enableRemoteModule : true, // true if you want to run 2e2 test  with Spectron or use remote module in renderer context (ie. Angular)
+      webSecurity: false
     },
   });
 
@@ -92,31 +93,6 @@ const folder = "images/";
 if(!fs.existsSync(folder)){
   fs.mkdirSync(folder);
 }
-ipcMain.on("chooseFile", (event, arg) => {
-  const result = dialog.showOpenDialog(win, {
-    title: "Choose Images",
-    properties: ["openFile", "multiSelections"],
-    filters: [{ name: "Images", extensions: ["png","jpg","jpeg"] }]
-  });
-
-  result.then(({canceled, filePaths, bookmarks}) => {
-    const files = [];
-    _.each(filePaths, (path)=> {
-      const image = nativeImage.createFromPath(path);
-      const buffer = image.toJPEG(100);
-      const uuid: string = uuidv4();
-      const name = `${uuid}.jpg`;
-      fs.writeFile(folder + name, buffer, (err)=> {
-        if (err) throw err;
-        console.log('Image has been created: ' + name);
-      });
-      const row = { name, uuid };
-      files.push(row);
-      insertRow(row);
-    });
-    event.reply("chosenFile", files);
-  });
-});
 
 // This will save the database in the same directory as the application.
 const dblocation = path.join(__dirname, '');
@@ -127,6 +103,38 @@ db.createTable(dbname, dblocation, (success, msg: string) => {
   } else {
     console.log('An error has occurred. ' + msg);
   }
+});
+db.createTable('project', dblocation, () => {
+});
+db.createTable('secret', dblocation, () => {
+});
+
+
+ipcMain.on("chooseFile", (event, arg) => {
+  const result = dialog.showOpenDialog(win, {
+    title: "Choose Images",
+    properties: ["openFile", "multiSelections"],
+    filters: [{ name: "Images", extensions: ["png","jpg","jpeg"] }]
+  });
+
+  result.then(({canceled, filePaths, bookmarks}) => {
+    const files = [];
+    _.each(filePaths, (path)=> {
+      console.log('>>> path: ' + path)
+      const image = nativeImage.createFromPath(path);
+      const buffer = image.toJPEG(100);
+      const uuid: string = uuidv4();
+      const name = `${uuid}.jpg`;
+      fs.writeFile(folder + name, buffer, (err)=> {
+        if (err) throw err;
+        console.log('Image has been created: ' + name);
+      });
+      const row = { name, uuid, project_id: arg.project_id };
+      files.push(row);
+      insertRow(row);
+    });
+    event.reply("chosenFile", files);
+  });
 });
 
 const insertRow = (row: any)=> {
@@ -166,20 +174,18 @@ ipcMain.on("resetDatabase", (event, arg) => {
 
 ipcMain.on("saveCredentials", (event, arg) => {
   console.log('>>>>>> ', arg)
-  db.createTable('secret', dblocation, () => {
-    if (db.valid('secret', dblocation)) {
-      db.clearTable('secret', dblocation, () => {
-        db.insertTableContent('secret', dblocation, arg, (success: boolean, msg: string) => {
-          // success - boolean, tells if the call is successful
-          console.log("Success: " + success);
-          console.log("Message: " + msg);
-          if (success) {
-            event.reply("credentialSaved", success);
-          }
-        });
+  if (db.valid('secret', dblocation)) {
+    db.clearTable('secret', dblocation, () => {
+      db.insertTableContent('secret', dblocation, arg, (success: boolean, msg: string) => {
+        // success - boolean, tells if the call is successful
+        console.log("Success: " + success);
+        console.log("Message: " + msg);
+        if (success) {
+          event.reply("credentialSaved", success);
+        }
       });
-    }
-  });
+    });
+  }
 });
 
 ipcMain.on("loadConfiguration", (event, arg) => {
@@ -193,19 +199,17 @@ ipcMain.on("loadConfiguration", (event, arg) => {
 });
 
 ipcMain.on("createProject", (event, arg) => {
-  db.createTable('project', dblocation, () => {
-    if (db.valid('project', dblocation)) {
-      arg.uuid = uuidv4();
-      db.insertTableContent('project', dblocation, arg, (success: boolean, msg: string) => {
-        // success - boolean, tells if the call is successful
-        console.log("Success: " + success);
-        console.log("Message: " + msg);
-        if (success) {
-          event.reply('projectCreated', arg);
-        }
-      });
-    }
-  });
+  if (db.valid('project', dblocation)) {
+    arg.uuid = uuidv4();
+    db.insertTableContent('project', dblocation, arg, (success: boolean, msg: string) => {
+      // success - boolean, tells if the call is successful
+      console.log("Success: " + success);
+      console.log("Message: " + msg);
+      if (success) {
+        event.reply('projectCreated', arg);
+      }
+    });
+  }
 });
 
 ipcMain.on("listProjects", (event, arg) => {
@@ -218,11 +222,26 @@ ipcMain.on("listProjects", (event, arg) => {
 
 ipcMain.on("listProject", (event, arg) => {
   if (db.valid('project', dblocation)) {
-    console.log('............', arg)
+    console.log('............ 1332', arg)
     db.getRows('project', dblocation, { uuid: arg.id }, (success, result) => {
       event.reply('listProjectCompleted', result);
     });
+  }
+});
 
+ipcMain.on("listProjectImages", (event, arg) => {
+  if (db.valid('images', dblocation)) {
+    console.log('............', arg);
+    const im = []
+    db.getRows('images', dblocation, { project_id: arg.project_id }, (success, result) => {
+      _.each(result, (image)=> {
+        im.push(image);
+        const a = fs.readFileSync('images/'+image.name, {encoding: 'base64'});
+        console.log(a)
+      });
+
+    });
+    event.reply('listProjectImagesCompleted', im);
   }
 });
 

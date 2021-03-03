@@ -1,3 +1,19 @@
 :host {
-  
+  .image-container {
+    width: 200px;
+    height: 200px;
+    margin: 5px;
+    background: red;
+    position: relative;
+    display: inline-block;
+
+    img {
+      width: 100%;
+      height: auto;
+    }
+  }
+
+  .images-container {
+    display: inline-block;
+  }
 }
