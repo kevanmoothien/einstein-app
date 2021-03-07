@@ -10,18 +10,23 @@ import {ActivatedRoute} from "@angular/router";
 })
 export class DetailComponent implements OnInit {
   id: string;
-  images: [];
-  projectName: any;
-  private sub: any;
+  images: { id: number, uuid: string, name: string, project_id: string, label: string }[];
+  projectName: string;
+  label: string;
 
-  constructor(private electronService: ElectronService, private route: ActivatedRoute, private zone: NgZone) {
+  constructor(
+    private electronService: ElectronService,
+    private route: ActivatedRoute,
+    private zone: NgZone
+  ) {
     this.zone.run(() => {
       this.id = this.route.snapshot.paramMap.get('id');
-      console.log('######', this.id );
     });
 
     if (electronService.isElectron) {
-      this.electronService.ipcRenderer.on('chosenFile', this.processImages);
+      this.electronService.ipcRenderer.on('chosenFile', (event, args)=> {
+        this.processImages(event, args);
+      });
       this.electronService.ipcRenderer.on('listProjectCompleted', (event, data)=>{
         console.log(">>>> **** ", data);
         this.zone.run(() => {
@@ -37,28 +42,46 @@ export class DetailComponent implements OnInit {
         });
       });
 
+      this.electronService.ipcRenderer.on('imageDeleted', (event, data)=> {
+        console.log(data);
+        this.zone.run(()=> {
+          _.remove(this.images, (image)=> {
+            return image['uuid'] == data.image_id;
+          });
+        });
+      });
+
       this.electronService.ipcRenderer.send('listProject', { id: this.id });
       this.electronService.ipcRenderer.send('listProjectImages', { project_id: this.id });
 
     }
   }
 
-  ngOnInit() {
+  ngOnInit() :void {
     this.id = this.route.snapshot.paramMap.get('id');
   }
 
-  ngOnDestroy() {
-
+  ngOnDestroy() :void {
+    this.electronService.ipcRenderer.removeAllListeners('chosenFile');
+    this.electronService.ipcRenderer.removeAllListeners('imageDeleted');
+    this.electronService.ipcRenderer.removeAllListeners('listProjectImagesCompleted');
+    this.electronService.ipcRenderer.removeAllListeners('listProjectCompleted');
   }
 
-  processImages(event, images: any) {
-    _.each(images, (image)=> {
-      console.log(image);
+  processImages(event, images: any) :void {
+    this.zone.run(() => {
+      _.each(images, (image: any)=> {
+        this.images.push(image);
+      });
     });
   }
 
-  chooseImages () {
-    this.electronService.ipcRenderer.send('chooseFile', { project_id: this.id });
+  chooseImages() :void {
+    if (this.label == undefined || this.label == '') {
+      // TODO: use bootstrap alert for this part
+      alert('Please insert a label first.');
+      return;
+    }
+    this.electronService.ipcRenderer.send('chooseFile', { project_id: this.id, label: this.label });
   }
-
 }

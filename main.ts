@@ -127,22 +127,25 @@ ipcMain.on("chooseFile", (event, arg) => {
       fs.writeFile(folder + name, buffer, (err)=> {
         if (err) throw err;
         console.log('Image has been created: ' + name);
+        const row = { name, uuid, project_id: arg.project_id, label: arg.label };
+        files.push(row);
+        insertRow(row, event);
+
       });
-      const row = { name, uuid, project_id: arg.project_id };
-      files.push(row);
-      insertRow(row);
+
     });
-    event.reply("chosenFile", files);
+    // event.reply("chosenFile", files);
   });
 });
 
-const insertRow = (row: any)=> {
+const insertRow = (row: any, event: any)=> {
   if (db.valid(dbname, dblocation)) {
     console.log('valid');
     db.insertTableContent(dbname, dblocation, row, (success: boolean, msg: string) => {
       // success - boolean, tells if the call is successful
       console.log("Success: " + success);
       console.log("Message: " + msg);
+      event.reply("chosenFile", [row]);
     });
   }
 };
@@ -245,3 +248,16 @@ ipcMain.on("listProjectImages", (event, arg) => {
 });
 
 
+ipcMain.on("deleteImage", (event, arg) => {
+  if (db.valid('images', dblocation)) {
+    db.getRows('images', dblocation, { uuid: arg.id }, (success, result) => {
+      db.deleteRow('images', dblocation, {'id': result[0].id}, (succ, msg) => {
+        if (succ) {
+          console.log('icicicic');
+          event.reply('imageDeleted', { image_id: arg.id, data: result });
+        }
+      });
+
+    });
+  }
+});

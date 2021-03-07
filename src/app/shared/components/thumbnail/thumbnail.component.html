@@ -1,1 +1,9 @@
-<img src="{{src}}" *ngIf="src" />
+<button class="btn btn-sm btn-danger" (click)="delete()">
+  X
+</button>
+
+<span>
+  {{label}}
+</span>
+
+<img [src]="src" *ngIf="src" />

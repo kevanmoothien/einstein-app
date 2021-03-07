@@ -6,21 +6,15 @@
   </h2>
 
   <hr>
-  <button (click)="chooseImages()" class="btn btn-success">Choose Images</button>
+  <div class="form-group">
+    <label for="labelInput">Label</label>
+    <input type="text" class="form-control" id="labelInput" placeholder="Label" [(ngModel)]="label">
+  </div>
+  <button (click)="chooseImages()" class="btn btn-success">Choose Images for {{label}}</button>
 
   <hr>
 
-
-  <div class="row">
-    <div class="col">
-      mo icici
-      <ul>
-        <li *ngFor="let image of images">
-          {{image.name}} -- {{image.path}}
-        </li>
-      </ul>
-    </div>
-  </div>
+  <h3 *ngIf="images == undefined || images.length == 0">Images not found</h3>
   <div class="row">
     <div class="col images-container">
       <div class="image-container" *ngFor="let im of images">

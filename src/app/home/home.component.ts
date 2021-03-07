@@ -54,7 +54,15 @@ export class HomeComponent implements OnInit {
 
   ngOnInit(): void { }
 
-  datasetReset (success) {
+  ngOnDestroy(): void {
+    this.electronService.ipcRenderer.removeAllListeners('projectListed');
+    this.electronService.ipcRenderer.removeAllListeners('projectCreated');
+    this.electronService.ipcRenderer.removeAllListeners('configurationLoaded');
+    this.electronService.ipcRenderer.removeAllListeners('credentialSaved');
+    this.electronService.ipcRenderer.removeAllListeners('resetDatabaseCompleted');
+  }
+
+  datasetReset (success): void {
     if (success) {
       console.log('database reset completed');
     }
@@ -63,20 +71,20 @@ export class HomeComponent implements OnInit {
     }
   }
 
-  resetDatabase () {
+  resetDatabase () :void {
     this.electronService.ipcRenderer.send('resetDatabase');
   }
 
-  onSubmit(myform: NgForm) {
+  onSubmit(myform: NgForm) :void {
     console.log(myform.value);
     this.electronService.ipcRenderer.send('saveCredentials', myform.value);
   }
 
-  credentialSaved () {
+  credentialSaved () :void {
     console.log('credential saved');
   }
 
-  createProject (myform: NgForm) {
+  createProject (myform: NgForm) :void {
     this.electronService.ipcRenderer.send('createProject', { name: myform.value.project });
   }
 }

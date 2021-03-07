@@ -51,7 +51,7 @@
         </thead>
         <tbody>
         <tr *ngFor="let p of projects">
-          <th scope="row">{{p.id}}</th>
+          <th scope="row">{{p.uuid}}</th>
           <td>{{p.name}}</td>
           <td>
             <a [routerLink]="['/details', p.uuid]">View</a>
