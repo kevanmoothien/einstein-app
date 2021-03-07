@@ -23,8 +23,9 @@
   </div>
   <div class="row">
     <div class="col images-container">
-      <div class="image-container" *ngFor="let image of images">
-        <img src="file:///images/{{image.name}}" />
+      <div class="image-container" *ngFor="let im of images">
+        <app-thumbnail [image]="im">
+        </app-thumbnail>
       </div>
     </div>
   </div>

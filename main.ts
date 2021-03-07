@@ -26,8 +26,7 @@ function createWindow(): BrowserWindow {
       nodeIntegration: true,
       allowRunningInsecureContent: (serve) ? true : false,
       contextIsolation: false,  // false if you want to run 2e2 test with Spectron
-      enableRemoteModule : true, // true if you want to run 2e2 test  with Spectron or use remote module in renderer context (ie. Angular)
-      webSecurity: false
+      enableRemoteModule : true // true if you want to run 2e2 test  with Spectron or use remote module in renderer context (ie. Angular)
     },
   });
 
@@ -236,8 +235,8 @@ ipcMain.on("listProjectImages", (event, arg) => {
     db.getRows('images', dblocation, { project_id: arg.project_id }, (success, result) => {
       _.each(result, (image)=> {
         im.push(image);
-        const a = fs.readFileSync('images/'+image.name, {encoding: 'base64'});
-        console.log(a)
+        // const a = fs.readFileSync('images/'+image.name, {encoding: 'base64'});
+        // console.log(a)
       });
 
     });
