@@ -9,7 +9,6 @@ import {NgForm} from '@angular/forms';
   styleUrls: ['./home.component.scss']
 })
 export class HomeComponent implements OnInit {
-  id: any;
   email: string;
   secret: string;
   project: string;
@@ -17,10 +16,8 @@ export class HomeComponent implements OnInit {
   projects: any;
 
   constructor(private router: Router, private zone: NgZone, private electronService: ElectronService) {
-    this.id = 'kevan';
-
     if (electronService.isElectron) {
-      this.electronService.ipcRenderer.on('resetDatabaseCompleted', this.datasetReset);
+      this.electronService.ipcRenderer.on('resetDatabaseCompleted', this.databaseReset);
       this.electronService.ipcRenderer.on('credentialSaved', this.credentialSaved);
 
       this.electronService.ipcRenderer.on('configurationLoaded', (event, message)=> {
@@ -62,7 +59,7 @@ export class HomeComponent implements OnInit {
     this.electronService.ipcRenderer.removeAllListeners('resetDatabaseCompleted');
   }
 
-  datasetReset (success): void {
+  databaseReset (success): void {
     if (success) {
       console.log('database reset completed');
     }

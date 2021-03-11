@@ -84,4 +84,8 @@ export class DetailComponent implements OnInit {
     }
     this.electronService.ipcRenderer.send('chooseFile', { project_id: this.id, label: this.label });
   }
+
+  createDataset() {
+
+  }
 }

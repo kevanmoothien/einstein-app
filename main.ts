@@ -119,20 +119,16 @@ ipcMain.on("chooseFile", (event, arg) => {
   result.then(({canceled, filePaths, bookmarks}) => {
     const files = [];
     _.each(filePaths, (path)=> {
-      console.log('>>> path: ' + path)
       const image = nativeImage.createFromPath(path);
       const buffer = image.toJPEG(100);
       const uuid: string = uuidv4();
       const name = `${uuid}.jpg`;
       fs.writeFile(folder + name, buffer, (err)=> {
         if (err) throw err;
-        console.log('Image has been created: ' + name);
         const row = { name, uuid, project_id: arg.project_id, label: arg.label };
         files.push(row);
         insertRow(row, event);
-
       });
-
     });
     // event.reply("chosenFile", files);
   });
@@ -140,7 +136,6 @@ ipcMain.on("chooseFile", (event, arg) => {
 
 const insertRow = (row: any, event: any)=> {
   if (db.valid(dbname, dblocation)) {
-    console.log('valid');
     db.insertTableContent(dbname, dblocation, row, (success: boolean, msg: string) => {
       // success - boolean, tells if the call is successful
       console.log("Success: " + success);
@@ -154,7 +149,6 @@ const truncate = (callback)=> {
   // Delete all the data
   db.clearTable(dbname, dblocation, (succ, msg) => {
     if (succ) {
-      console.log(msg);
       callback(true);
       // Show the content now
       db.getAll(dbname, dblocation, (succ, data) => {
@@ -175,7 +169,6 @@ ipcMain.on("resetDatabase", (event, arg) => {
 });
 
 ipcMain.on("saveCredentials", (event, arg) => {
-  console.log('>>>>>> ', arg)
   if (db.valid('secret', dblocation)) {
     db.clearTable('secret', dblocation, () => {
       db.insertTableContent('secret', dblocation, arg, (success: boolean, msg: string) => {
@@ -192,7 +185,6 @@ ipcMain.on("saveCredentials", (event, arg) => {
 
 ipcMain.on("loadConfiguration", (event, arg) => {
   db.getAll('secret', dblocation, (succ, data) => {
-    console.log(succ, data);
     if (succ) {
       console.log(data);
       event.reply('configurationLoaded', data);
@@ -224,7 +216,6 @@ ipcMain.on("listProjects", (event, arg) => {
 
 ipcMain.on("listProject", (event, arg) => {
   if (db.valid('project', dblocation)) {
-    console.log('............ 1332', arg)
     db.getRows('project', dblocation, { uuid: arg.id }, (success, result) => {
       event.reply('listProjectCompleted', result);
     });
@@ -233,15 +224,12 @@ ipcMain.on("listProject", (event, arg) => {
 
 ipcMain.on("listProjectImages", (event, arg) => {
   if (db.valid('images', dblocation)) {
-    console.log('............', arg);
     const im = []
     db.getRows('images', dblocation, { project_id: arg.project_id }, (success, result) => {
       _.each(result, (image)=> {
         im.push(image);
         // const a = fs.readFileSync('images/'+image.name, {encoding: 'base64'});
-        // console.log(a)
       });
-
     });
     event.reply('listProjectImagesCompleted', im);
   }
@@ -253,11 +241,9 @@ ipcMain.on("deleteImage", (event, arg) => {
     db.getRows('images', dblocation, { uuid: arg.id }, (success, result) => {
       db.deleteRow('images', dblocation, {'id': result[0].id}, (succ, msg) => {
         if (succ) {
-          console.log('icicicic');
           event.reply('imageDeleted', { image_id: arg.id, data: result });
         }
       });
-
     });
   }
 });
