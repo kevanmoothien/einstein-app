@@ -51,6 +51,10 @@ export class DetailComponent implements OnInit {
         });
       });
 
+      this.electronService.ipcRenderer.on('datasetCreated', (event, data)=> {
+        console.log(data);
+      });
+
       this.electronService.ipcRenderer.send('listProject', { id: this.id });
       this.electronService.ipcRenderer.send('listProjectImages', { project_id: this.id });
 
@@ -66,6 +70,7 @@ export class DetailComponent implements OnInit {
     this.electronService.ipcRenderer.removeAllListeners('imageDeleted');
     this.electronService.ipcRenderer.removeAllListeners('listProjectImagesCompleted');
     this.electronService.ipcRenderer.removeAllListeners('listProjectCompleted');
+    this.electronService.ipcRenderer.removeAllListeners('datasetCreated');
   }
 
   processImages(event, images: any) :void {
@@ -86,6 +91,7 @@ export class DetailComponent implements OnInit {
   }
 
   createDataset() {
-
+    const dataset = { project_id: this.id, name: this.projectName };
+    this.electronService.ipcRenderer.send('createDataset', dataset);
   }
 }

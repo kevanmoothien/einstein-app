@@ -20,7 +20,7 @@ function createWindow(): BrowserWindow {
   win = new BrowserWindow({
     x: 0,
     y: 0,
-    width: 800 || size.width,
+    width: 1200 || size.width,
     height: 800 || size.height,
     webPreferences: {
       nodeIntegration: true,
@@ -95,17 +95,13 @@ if(!fs.existsSync(folder)){
 
 // This will save the database in the same directory as the application.
 const dblocation = path.join(__dirname, '');
-const dbname = 'images';
-db.createTable(dbname, dblocation, (success, msg: string) => {
-  if (success) {
-    console.log(msg);
-  } else {
-    console.log('An error has occurred. ' + msg);
-  }
+db.createTable('images', dblocation, () => {
 });
 db.createTable('project', dblocation, () => {
 });
 db.createTable('secret', dblocation, () => {
+});
+db.createTable('dataset', dblocation, () => {
 });
 
 
@@ -135,8 +131,8 @@ ipcMain.on("chooseFile", (event, arg) => {
 });
 
 const insertRow = (row: any, event: any)=> {
-  if (db.valid(dbname, dblocation)) {
-    db.insertTableContent(dbname, dblocation, row, (success: boolean, msg: string) => {
+  if (db.valid('images', dblocation)) {
+    db.insertTableContent('images', dblocation, row, (success: boolean, msg: string) => {
       // success - boolean, tells if the call is successful
       console.log("Success: " + success);
       console.log("Message: " + msg);
@@ -147,11 +143,11 @@ const insertRow = (row: any, event: any)=> {
 
 const truncate = (callback)=> {
   // Delete all the data
-  db.clearTable(dbname, dblocation, (succ, msg) => {
+  db.clearTable('images', dblocation, (succ, msg) => {
     if (succ) {
       callback(true);
       // Show the content now
-      db.getAll(dbname, dblocation, (succ, data) => {
+      db.getAll('images', dblocation, (succ, data) => {
         if (succ) {
           console.log(data);
         }
@@ -224,7 +220,7 @@ ipcMain.on("listProject", (event, arg) => {
 
 ipcMain.on("listProjectImages", (event, arg) => {
   if (db.valid('images', dblocation)) {
-    const im = []
+    const im = [];
     db.getRows('images', dblocation, { project_id: arg.project_id }, (success, result) => {
       _.each(result, (image)=> {
         im.push(image);
@@ -247,3 +243,27 @@ ipcMain.on("deleteImage", (event, arg) => {
     });
   }
 });
+
+ipcMain.on('createDataset', (event, arg)=> {
+  if (db.valid('dataset', dblocation)) {
+    db.deleteRow('dataset', dblocation, {'project_id': arg.project_id}, (succ, msg) => {
+
+    });
+    db.insertTableContent('dataset', dblocation, arg, (success: boolean, msg: string) => {
+      // success - boolean, tells if the call is successful
+      console.log("Success: " + success);
+      console.log("Message: " + msg);
+      if (success) {
+        event.reply('datasetCreated', arg);
+      }
+    });
+  }
+});
+
+// ipcMain.on('listDataset', (event, arg)=> {
+//   if (db.valid('dataset', dblocation)) {
+//     db.getRows('dataset', dblocation, { project_id: arg.project_id }, (success, data) => {
+//       event.reply('listDatasetCompleted', data);
+//     });
+//   }
+// });
