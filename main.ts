@@ -250,24 +250,24 @@ ipcMain.on('createDataset', (event, arg)=> {
     db.deleteRow('dataset', dblocation, {'project_id': arg.project_id}, (succ, msg) => {
 
     });
+    createDataset(arg.name, arg.labels, (err, data)=>{
+      if (err == null) {
+        console.log(data)
+        event.reply('datasetCreated', arg);
+      }
+    });
     db.insertTableContent('dataset', dblocation, arg, (success: boolean, msg: string) => {
       // success - boolean, tells if the call is successful
       console.log("Success: " + success);
       console.log("Message: " + msg);
+
       if (success) {
-        event.reply('datasetCreated', arg);
+
+
       }
     });
   }
 });
-
-// ipcMain.on('listDataset', (event, arg)=> {
-//   if (db.valid('dataset', dblocation)) {
-//     db.getRows('dataset', dblocation, { project_id: arg.project_id }, (success, data) => {
-//       event.reply('listDatasetCompleted', data);
-//     });
-//   }
-// });
 
 let access_token = '';
 const generateAccessToken = () => {
@@ -296,10 +296,9 @@ const generateAccessToken = () => {
     });
   }
 };
-
 generateAccessToken();
 
-const createDataset = (name, labels) => {
+const createDataset = (name, labels, callback) => {
   const endpoint = 'https://api.einstein.ai/v2/vision/datasets';
 
   superagent
@@ -309,5 +308,9 @@ const createDataset = (name, labels) => {
     .send({ name: name, labels: labels, type: 'image'})
     .then((response) => {
       console.log(response.body);
-    }).catch(console.error);
+      callback(null, response.body);
+    })
+    .catch((error) => {
+      callback(error)
+    });
 };

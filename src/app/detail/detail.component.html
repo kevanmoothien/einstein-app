@@ -1,19 +1,25 @@
 <div class="container-fluid">
   <a routerLink="/">Back to home</a>
   <hr>
-  <h2 class="title">
+  <h3 class="title">
     Project: {{projectName}}
-  </h2>
+  </h3>
 
   <hr>
   <div class="row">
     <div class="col-6">
+      <ul>
+        <li *ngFor="let l of labels">
+          <a (click)="selectLabel(l)">{{l}}</a>
+        </li>
+      </ul>
       <div class="form-group">
-        <label for="labelInput">Label</label>
-        <input type="text" class="form-control" id="labelInput" placeholder="Label" [(ngModel)]="label">
+        <label for="labelInput">New Label</label>
+        <input type="text" class="form-control" id="labelInput" placeholder="New Label" [(ngModel)]="label">
       </div>
       <button (click)="chooseImages()" class="btn btn-success">Choose Images for {{label}}</button>
     </div>
+
     <div class="col-6">
       Dataset:
       <button (click)="createDataset()" class="btn btn-success">Create Dataset</button>
@@ -25,7 +31,7 @@
   <h3 *ngIf="images == undefined || images.length == 0">Images not found</h3>
   <div class="row">
     <div class="col images-container">
-      <div class="image-container" *ngFor="let im of images">
+      <div class="image-container img-thumbnail" *ngFor="let im of images">
         <app-thumbnail [image]="im">
         </app-thumbnail>
       </div>

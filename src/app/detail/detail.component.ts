@@ -13,6 +13,7 @@ export class DetailComponent implements OnInit {
   images: { id: number, uuid: string, name: string, project_id: string, label: string }[];
   projectName: string;
   label: string;
+  labels: string[];
 
   constructor(
     private electronService: ElectronService,
@@ -39,6 +40,7 @@ export class DetailComponent implements OnInit {
 
         this.zone.run(() => {
           this.images = data;
+          this.labels = _.orderBy(_.uniq(_.map(data, 'label')));
         });
       });
 
@@ -91,7 +93,11 @@ export class DetailComponent implements OnInit {
   }
 
   createDataset() {
-    const dataset = { project_id: this.id, name: this.projectName };
+    const dataset = { project_id: this.id, name: this.projectName, labels: this.labels };
     this.electronService.ipcRenderer.send('createDataset', dataset);
+  }
+
+  selectLabel(l: string) {
+    this.label = l;
   }
 }

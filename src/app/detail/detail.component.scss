@@ -2,8 +2,8 @@
   .image-container {
     width: 200px;
     height: 200px;
+    overflow: hidden;
     margin: 5px;
-    background: red;
     position: relative;
     display: inline-block;
   }
