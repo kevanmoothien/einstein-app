@@ -20,11 +20,11 @@ export class HomeComponent implements OnInit {
       this.electronService.ipcRenderer.on('resetDatabaseCompleted', this.databaseReset);
       this.electronService.ipcRenderer.on('credentialSaved', this.credentialSaved);
 
-      this.electronService.ipcRenderer.on('configurationLoaded', (event, message)=> {
+      this.electronService.ipcRenderer.on('configurationLoaded', (event, data)=> {
         this.zone.run(() => {
           try {
-            this.email = message[0].email;
-            this.secret = message[0].secret;
+            this.email = data[0].email;
+            this.secret = data[0].secret;
           }
           catch(e) {
             console.log('secret not found');

@@ -5,7 +5,8 @@ import * as fs from "fs";
 import * as _ from "lodash";
 import { v4 as uuidv4 } from 'uuid';
 import * as db from 'electron-db';
-
+import * as jwt from 'jsonwebtoken';
+import * as superagent from 'superagent';
 
 let win: BrowserWindow = null;
 const args = process.argv.slice(1),
@@ -267,3 +268,46 @@ ipcMain.on('createDataset', (event, arg)=> {
 //     });
 //   }
 // });
+
+let access_token = '';
+const generateAccessToken = () => {
+  if (db.valid('dataset', dblocation)) {
+    db.getAll('secret', dblocation, (succ, data) => {
+      if (succ) {
+        const email = data[0].email;
+        const privateKey = data[0].secret;
+
+        const payload = {
+          "sub": email,
+          "aud": "https://api.einstein.ai/v2/oauth2/token",
+          "exp": Math.floor((new Date().getTime()) / 1000 + (12 * 60 * 60))
+        };
+        const token = jwt.sign(payload, privateKey, { algorithm: 'RS256' });
+
+        superagent
+          .post('https://api.einstein.ai/v2/oauth2/token')
+          .set('Content-type', 'application/x-www-form-urlencoded')
+          .send({ scope: 'offline', assertion: token, grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer' })
+          .then((response) => {
+            console.log(response.body);
+            access_token = response.body.access_token;
+          }).catch(console.error);
+      }
+    });
+  }
+};
+
+generateAccessToken();
+
+const createDataset = (name, labels) => {
+  const endpoint = 'https://api.einstein.ai/v2/vision/datasets';
+
+  superagent
+    .post(endpoint)
+    .set('Content-type', 'application/x-www-form-urlencoded')
+    .set('Authorization', `Bearer ${access_token}`)
+    .send({ name: name, labels: labels, type: 'image'})
+    .then((response) => {
+      console.log(response.body);
+    }).catch(console.error);
+};
