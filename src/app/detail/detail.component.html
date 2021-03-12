@@ -21,7 +21,8 @@
     </div>
 
     <div class="col-6">
-      Dataset: <a [routerLink]="['/datasets', id]">View Dataset for this project</a>
+      Dataset: <a [routerLink]="['/datasets', dataset.project_id]" *ngIf="dataset">View Dataset for this project</a>
+      <p *ngIf="!dataset">No dataset created yet</p>
       <button (click)="createDataset()" class="btn btn-success">Create Dataset</button>
     </div>
   </div>

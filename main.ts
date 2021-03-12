@@ -232,7 +232,6 @@ ipcMain.on("listProjectImages", (event, arg) => {
   }
 });
 
-
 ipcMain.on("deleteImage", (event, arg) => {
   if (db.valid('images', dblocation)) {
     db.getRows('images', dblocation, { uuid: arg.id }, (success, result) => {
@@ -261,10 +260,7 @@ ipcMain.on('createDataset', (event, arg)=> {
       console.log("Success: " + success);
       console.log("Message: " + msg);
 
-      if (success) {
-
-
-      }
+      if (success) { }
     });
   }
 });
@@ -311,6 +307,22 @@ const createDataset = (name, labels, callback) => {
       callback(null, response.body);
     })
     .catch((error) => {
-      callback(error)
+      callback(error);
     });
 };
+
+
+ipcMain.on("loadDataset", (event, arg) => {
+  if (db.valid('dataset', dblocation)) {
+    db.getRows('dataset', dblocation, { project_id: arg.project_id }, (success, result) => {
+      console.log('>>>> ', result);
+      if (result.length > 0) {
+        result = result[0];
+      }
+      else {
+        result = null;
+      }
+      event.reply('datasetLoaded', result);
+    });
+  }
+});

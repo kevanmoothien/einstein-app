@@ -14,6 +14,7 @@ export class DetailComponent implements OnInit {
   projectName: string;
   label: string;
   labels: string[];
+  dataset :any;
 
   constructor(
     private electronService: ElectronService,
@@ -29,15 +30,12 @@ export class DetailComponent implements OnInit {
         this.processImages(event, args);
       });
       this.electronService.ipcRenderer.on('listProjectCompleted', (event, data)=>{
-        console.log(">>>> **** ", data);
         this.zone.run(() => {
           this.projectName = data[0].name;
         });
       });
 
       this.electronService.ipcRenderer.on('listProjectImagesCompleted', (event, data)=>{
-        console.log(">>>> **** images: ", data);
-
         this.zone.run(() => {
           this.images = data;
           this.labels = _.orderBy(_.uniq(_.map(data, 'label')));
@@ -45,7 +43,6 @@ export class DetailComponent implements OnInit {
       });
 
       this.electronService.ipcRenderer.on('imageDeleted', (event, data)=> {
-        console.log(data);
         this.zone.run(()=> {
           _.remove(this.images, (image)=> {
             return image['uuid'] == data.image_id;
@@ -55,11 +52,20 @@ export class DetailComponent implements OnInit {
 
       this.electronService.ipcRenderer.on('datasetCreated', (event, data)=> {
         console.log(data);
+        this.zone.run(() => {
+          this.dataset = data;
+        });
       });
 
       this.electronService.ipcRenderer.send('listProject', { id: this.id });
       this.electronService.ipcRenderer.send('listProjectImages', { project_id: this.id });
-
+      this.electronService.ipcRenderer.send('loadDataset', { project_id: this.id });
+      this.electronService.ipcRenderer.on('datasetLoaded', (event, data)=> {
+        console.log(">>> dataset loaded: ", data);
+        this.zone.run(() => {
+          this.dataset = data;
+        });
+      });
     }
   }
 
@@ -73,6 +79,7 @@ export class DetailComponent implements OnInit {
     this.electronService.ipcRenderer.removeAllListeners('listProjectImagesCompleted');
     this.electronService.ipcRenderer.removeAllListeners('listProjectCompleted');
     this.electronService.ipcRenderer.removeAllListeners('datasetCreated');
+    this.electronService.ipcRenderer.removeAllListeners('datasetLoaded');
   }
 
   processImages(event, images: any) :void {
