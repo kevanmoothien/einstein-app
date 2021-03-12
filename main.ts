@@ -279,9 +279,10 @@ ipcMain.on('createDataset', (event, arg)=> {
 
     });
     createDataset(arg.name, arg.labels, (err, data)=>{
+      console.log(err)
       if (err == null) {
         console.log(data);
-        arg.data = data;
+        arg.dataset = data;
         db.insertTableContent('dataset', dblocation, arg, (success: boolean, msg: string) => {
           // success - boolean, tells if the call is successful
           console.log("Success: " + success);
@@ -289,6 +290,7 @@ ipcMain.on('createDataset', (event, arg)=> {
 
           if (success) {
             event.reply('datasetCreated', arg);
+            uploadImages(arg, event);
           }
         });
       }
@@ -301,9 +303,12 @@ const createDataset = (name, labels, callback) => {
 
   superagent
     .post(endpoint)
-    .set('Content-type', 'application/x-www-form-urlencoded')
+    .set('Content-type', 'multipart/form-data')
+    .set('Cache-Control', 'no-cache')
     .set('Authorization', `Bearer ${access_token}`)
-    .send({ name: name, labels: labels, type: 'image'})
+    .field('name', 'My name')
+    .field('labels', _.join(labels, ','))
+    .field('type', 'image')
     .then((response) => {
       console.log(response.body);
       callback(null, response.body);
@@ -327,3 +332,13 @@ ipcMain.on("loadDataset", (event, arg) => {
     });
   }
 });
+
+const uploadImages = (arg, event) => {
+  const dataset = arg.dataset;
+  console.log(dataset);
+  if (db.valid('images', dblocation)) {
+    db.getRows('images', dblocation, { project_id: arg.project_id }, (success, images) => {
+      console.log(images);
+    });
+  }
+};
