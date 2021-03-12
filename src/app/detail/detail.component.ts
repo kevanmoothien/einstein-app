@@ -101,6 +101,7 @@ export class DetailComponent implements OnInit {
 
   createDataset() {
     const dataset = { project_id: this.id, name: this.projectName, labels: this.labels };
+    console.log(dataset)
     this.electronService.ipcRenderer.send('createDataset', dataset);
   }
 

@@ -6,7 +6,7 @@ import {DomSanitizer, SafeUrl} from "@angular/platform-browser";
   selector: 'app-thumbnail',
   templateUrl: './thumbnail.component.html',
   styleUrls: ['./thumbnail.component.scss'],
-  inputs: [ 'image', 'uploading' ]
+  inputs: [ 'image', 'uploading', 'uploaded' ]
 })
 export class ThumbnailComponent implements OnInit {
 
@@ -14,6 +14,7 @@ export class ThumbnailComponent implements OnInit {
   src: SafeUrl;
   label: string;
   uploading = false;
+  uploaded = false;
 
   constructor(public electron: ElectronService, private zone: NgZone, private sanitizer: DomSanitizer) {
 
