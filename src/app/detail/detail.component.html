@@ -21,7 +21,7 @@
     </div>
 
     <div class="col-6">
-      Dataset:
+      Dataset: <a [routerLink]="['/datasets', id]">View Dataset for this project</a>
       <button (click)="createDataset()" class="btn btn-success">Create Dataset</button>
     </div>
   </div>
