@@ -183,7 +183,7 @@ ipcMain.on("saveCredentials", (event, arg) => {
 ipcMain.on("loadConfiguration", (event, arg) => {
   db.getAll('secret', dblocation, (succ, data) => {
     if (succ) {
-      console.log(data);
+      // console.log(data);
       event.reply('configurationLoaded', data);
     }
   });
@@ -334,11 +334,52 @@ ipcMain.on("loadDataset", (event, arg) => {
 });
 
 const uploadImages = (arg, event) => {
-  const dataset = arg.dataset;
-  console.log(dataset);
-  if (db.valid('images', dblocation)) {
-    db.getRows('images', dblocation, { project_id: arg.project_id }, (success, images) => {
-      console.log(images);
+  let dataset;
+
+  db.getRows('dataset', dblocation, { project_id: arg.project_id }, (success, result) => {
+    console.log('>>>> ', result);
+    if (result.length > 0) {
+      dataset = result[0].dataset;
+    }
+    console.log(JSON.stringify(dataset));
+    const dataset_id = dataset.id;
+    const labels = {};
+    _.each(dataset.labelSummary.labels, (value)=> {
+      labels[value.name] = value.id;
     });
-  }
+    console.log(labels);
+
+    db.getRows('images', dblocation, { project_id: arg.project_id }, (success, images : {name:string, uuid: string, project_id:string, label:string}[]) => {
+      console.log(images);
+      _.each(images, (image)=> {
+        const payload = { name: image.uuid, labelId: labels[image.label], path: `images/${image.name}` };
+        console.log(payload);
+      });
+    });
+  });
 };
+
+// uploadImages({project_id: 'b0c9ebc5-ee3b-485b-bf77-2de054cc65c1'}, null);
+
+const upload = (datasetId: string, payload: {name:string, labelId:number, path:string}) => {
+  const endpoint = `https://api.einstein.ai/v2/vision/datasets/${datasetId}/examples`;
+
+  superagent
+    .post(endpoint)
+    .attach('data', payload.path)
+    .set('Cache-Control', 'no-cache')
+    .set('Authorization', `Bearer ${access_token}`)
+    .field('name', payload.name)
+    .field('labelId', payload.labelId)
+    .then((response) => {
+      console.log(response.body);
+
+      console.log("$$$$$$$$$$$", response);
+      // callback(null, response.body);
+    })
+    .catch((error) => {
+      console.log("********", error);
+      // callback(error);
+    });
+};
+// upload('1259760', { name: 'a819d43f-311e-44db-a7fd-481fda73b26d', labelId: 2, path: './images/a819d43f-311e-44db-a7fd-481fda73b26d.jpg' });
