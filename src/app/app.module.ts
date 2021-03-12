@@ -16,6 +16,7 @@ import { DetailModule } from './detail/detail.module';
 import { DatasetModule } from './dataset/dataset.module';
 
 import { AppComponent } from './app.component';
+import {MatSliderModule} from "@angular/material/slider";
 
 // AoT requires an exported function for factories
 export function HttpLoaderFactory(http: HttpClient): TranslateHttpLoader {
@@ -34,6 +35,7 @@ export function HttpLoaderFactory(http: HttpClient): TranslateHttpLoader {
     DetailModule,
     DatasetModule,
     AppRoutingModule,
+    MatSliderModule,
     TranslateModule.forRoot({
       loader: {
         provide: TranslateLoader,
