@@ -1,11 +1,7 @@
-<button class="btn btn-sm btn-danger" (click)="delete()">
-  X
-</button>
-
-<span>
-  {{label}}
-</span>
-
-<img [src]="src" *ngIf="src" />
-
-<mat-spinner diameter="25" value="50"></mat-spinner>
+<div class="image-container img-thumbnail">
+  <button class="btn btn-sm btn-danger" (click)="delete()">X</button>
+  <span>{{label}}</span>
+  <img [src]="src" *ngIf="src" />
+  <mat-spinner diameter="25" value="50" class="loading" *ngIf="uploading"></mat-spinner>
+  <fa-icon icon="coffee"></fa-icon>
+</div>

@@ -1,4 +1,21 @@
 :host {
+  .image-container {
+    width: 200px;
+    height: 200px;
+    overflow: hidden;
+    margin: 5px;
+    position: relative;
+    display: inline-block;
+  }
+
+  .images-container {
+    display: inline-block;
+  }
+
+  .label-list {
+    cursor: pointer;
+  }
+
   img {
     width: 100%;
   }
@@ -15,5 +32,11 @@
     background: white;
     width: 80%;
     padding: 0 4px;
+  }
+
+  .loading {
+    position: absolute;
+    bottom: 0;
+    background-color: white;
   }
 }

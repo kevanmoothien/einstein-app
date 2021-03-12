@@ -32,10 +32,8 @@
   <h3 *ngIf="images == undefined || images.length == 0">Images not found</h3>
   <div class="row">
     <div class="col images-container">
-      <div class="image-container img-thumbnail" *ngFor="let im of images">
-        <app-thumbnail [image]="im">
-        </app-thumbnail>
-      </div>
+      <app-thumbnail *ngFor="let im of images" [image]="im" [uploading]="false">
+      </app-thumbnail>
     </div>
   </div>
 

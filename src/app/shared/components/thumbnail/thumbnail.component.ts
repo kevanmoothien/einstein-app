@@ -6,13 +6,14 @@ import {DomSanitizer, SafeUrl} from "@angular/platform-browser";
   selector: 'app-thumbnail',
   templateUrl: './thumbnail.component.html',
   styleUrls: ['./thumbnail.component.scss'],
-  inputs: [ 'image' ]
+  inputs: [ 'image', 'uploading' ]
 })
 export class ThumbnailComponent implements OnInit {
 
   image: Record<string, string>;
   src: SafeUrl;
   label: string;
+  uploading = false;
 
   constructor(public electron: ElectronService, private zone: NgZone, private sanitizer: DomSanitizer) {
 
@@ -22,7 +23,6 @@ export class ThumbnailComponent implements OnInit {
     if (this.electron.isElectron) {
       this.label = this.image.label;
       this.electron.fs.readFile(`images/${this.image.name}`, 'base64', (err, data)=> {
-        console.log('>>>> &&&& Erro: ' + err);
         this.zone.run(() => {
           this.src = this.sanitizer.bypassSecurityTrustUrl(`data:image/jpeg;base64,${data}`);
         });
