@@ -21,7 +21,8 @@
     </div>
 
     <div class="col-6">
-      Dataset: <a [routerLink]="['/datasets', dataset.project_id]" *ngIf="dataset">View Dataset for this project</a>
+      <!-- TODO: on view of dataset, generate model from there -->
+      <p *ngIf="dataset">Dataset: <a [routerLink]="['/datasets', dataset.project_id]">View Dataset for this project</a></p>
       <p *ngIf="!dataset">No dataset created yet</p>
       <button (click)="createDataset()" class="btn btn-success">Create Dataset</button>
     </div>
@@ -32,7 +33,7 @@
   <h3 *ngIf="images == undefined || images.length == 0">Images not found</h3>
   <div class="row">
     <div class="col images-container">
-      <app-thumbnail *ngFor="let im of images" [image]="im" [uploading]="false">
+      <app-thumbnail *ngFor="let im of images" [image]="im" [dataset]="dataset">
       </app-thumbnail>
     </div>
   </div>

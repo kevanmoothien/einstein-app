@@ -10,11 +10,13 @@ import {ActivatedRoute} from "@angular/router";
 })
 export class DetailComponent implements OnInit {
   id: string;
-  images: { id: number, uuid: string, name: string, project_id: string, label: string }[];
+  images: { id: number, uuid: string, name: string, project_id: string, label: string, uploaded: boolean }[];
   projectName: string;
   label: string;
   labels: string[];
   dataset :any;
+
+  // TODO: load dataset and check completed - add a setInterval to check status of dataset
 
   constructor(
     private electronService: ElectronService,
@@ -34,11 +36,10 @@ export class DetailComponent implements OnInit {
           this.projectName = data[0].name;
         });
       });
-
-      this.electronService.ipcRenderer.on('listProjectImagesCompleted', (event, data)=>{
+      this.electronService.ipcRenderer.on('listProjectImagesCompleted', (event, images)=>{
         this.zone.run(() => {
-          this.images = data;
-          this.labels = _.orderBy(_.uniq(_.map(data, 'label')));
+          this.images = images;
+          this.labels = _.orderBy(_.uniq(_.map(images, 'label')));
         });
       });
 
@@ -49,23 +50,29 @@ export class DetailComponent implements OnInit {
           });
         });
       });
-
       this.electronService.ipcRenderer.on('datasetCreated', (event, data)=> {
         console.log(data);
         this.zone.run(() => {
           this.dataset = data;
         });
       });
-
-      this.electronService.ipcRenderer.send('listProject', { id: this.id });
-      this.electronService.ipcRenderer.send('listProjectImages', { project_id: this.id });
-      this.electronService.ipcRenderer.send('loadDataset', { project_id: this.id });
       this.electronService.ipcRenderer.on('datasetLoaded', (event, data)=> {
         console.log(">>> dataset loaded: ", data);
         this.zone.run(() => {
           this.dataset = data;
         });
       });
+      this.electronService.ipcRenderer.on('imageUploaded', (event, image)=> {
+        console.log(">>> image uploaded: ", image);
+        this.zone.run(() => {
+          _.find(this.images, (im)=>{
+            return im.uuid == image.uuid;
+          }).uploaded = true;
+        });
+      });
+      this.electronService.ipcRenderer.send('listProject', { id: this.id });
+      this.electronService.ipcRenderer.send('listProjectImages', { project_id: this.id });
+      this.electronService.ipcRenderer.send('loadDataset', { project_id: this.id });
     }
   }
 
@@ -80,6 +87,7 @@ export class DetailComponent implements OnInit {
     this.electronService.ipcRenderer.removeAllListeners('listProjectCompleted');
     this.electronService.ipcRenderer.removeAllListeners('datasetCreated');
     this.electronService.ipcRenderer.removeAllListeners('datasetLoaded');
+    this.electronService.ipcRenderer.removeAllListeners('imageUploaded');
   }
 
   processImages(event, images: any) :void {
@@ -96,12 +104,15 @@ export class DetailComponent implements OnInit {
       alert('Please insert a label first.');
       return;
     }
+    this.labels.push(this.label);
+    this.zone.run(() => {
+      this.labels = _.orderBy(_.uniq(this.labels));
+    });
     this.electronService.ipcRenderer.send('chooseFile', { project_id: this.id, label: this.label });
   }
 
   createDataset() {
     const dataset = { project_id: this.id, name: this.projectName, labels: this.labels };
-    console.log(dataset)
     this.electronService.ipcRenderer.send('createDataset', dataset);
   }
 

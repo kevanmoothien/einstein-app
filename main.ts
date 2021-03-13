@@ -7,6 +7,7 @@ import { v4 as uuidv4 } from 'uuid';
 import * as db from 'electron-db';
 import * as jwt from 'jsonwebtoken';
 import * as superagent from 'superagent';
+import * as async from 'async';
 
 let win: BrowserWindow = null;
 const args = process.argv.slice(1),
@@ -122,7 +123,7 @@ ipcMain.on("chooseFile", (event, arg) => {
       const name = `${uuid}.jpg`;
       fs.writeFile(folder + name, buffer, (err)=> {
         if (err) throw err;
-        const row = { name, uuid, project_id: arg.project_id, label: arg.label };
+        const row = { name, uuid, project_id: arg.project_id, label: arg.label, uploaded: false };
         files.push(row);
         insertRow(row, event);
       });
@@ -244,6 +245,20 @@ ipcMain.on("deleteImage", (event, arg) => {
   }
 });
 
+ipcMain.on("loadDataset", (event, arg) => {
+  if (db.valid('dataset', dblocation)) {
+    db.getRows('dataset', dblocation, { project_id: arg.project_id }, (success, result) => {
+      if (result.length > 0) {
+        result = result[0];
+      }
+      else {
+        result = null;
+      }
+      event.reply('datasetLoaded', result);
+    });
+  }
+});
+
 let access_token = '';
 const generateAccessToken = () => {
   if (db.valid('dataset', dblocation)) {
@@ -279,15 +294,11 @@ ipcMain.on('createDataset', (event, arg)=> {
 
     });
     createDataset(arg.name, arg.labels, (err, data)=>{
-      console.log(err)
+      console.log('Errororroro', err);
       if (err == null) {
         console.log(data);
         arg.dataset = data;
-        db.insertTableContent('dataset', dblocation, arg, (success: boolean, msg: string) => {
-          // success - boolean, tells if the call is successful
-          console.log("Success: " + success);
-          console.log("Message: " + msg);
-
+        db.insertTableContent('dataset', dblocation, arg, (success: boolean, _msg: string) => {
           if (success) {
             event.reply('datasetCreated', arg);
             uploadImages(arg, event);
@@ -318,50 +329,55 @@ const createDataset = (name, labels, callback) => {
     });
 };
 
-ipcMain.on("loadDataset", (event, arg) => {
-  if (db.valid('dataset', dblocation)) {
-    db.getRows('dataset', dblocation, { project_id: arg.project_id }, (success, result) => {
-      console.log('>>>> ', result);
-      if (result.length > 0) {
-        result = result[0];
-      }
-      else {
-        result = null;
-      }
-      event.reply('datasetLoaded', result);
-    });
-  }
-});
-
 const uploadImages = (arg, event) => {
   let dataset;
 
   db.getRows('dataset', dblocation, { project_id: arg.project_id }, (success, result) => {
-    console.log('>>>> ', result);
     if (result.length > 0) {
       dataset = result[0].dataset;
     }
-    console.log(JSON.stringify(dataset));
     const dataset_id = dataset.id;
     const labels = {};
     _.each(dataset.labelSummary.labels, (value)=> {
       labels[value.name] = value.id;
     });
-    console.log(labels);
-
-    db.getRows('images', dblocation, { project_id: arg.project_id }, (success, images : {name:string, uuid: string, project_id:string, label:string}[]) => {
-      console.log(images);
+    db.getRows('images', dblocation, { project_id: arg.project_id }, (success, images : {id: number, name:string, uuid: string, project_id:string, label:string}[]) => {
+      // console.log(images);
+      const tasks = [];
       _.each(images, (image)=> {
         const payload = { name: image.uuid, labelId: labels[image.label], path: `images/${image.name}` };
-        console.log(payload);
+        tasks.push((callback) => {
+          upload(dataset_id, payload, (err, res) => {
+            db.updateRow('images', dblocation, { id: image.id }, { uploaded: true }, (succ, msg)=> {
+              if (succ) {
+                console.log('completedddddd');
+              }
+              else {
+                console.log(msg);
+              }
+            });
+            event.reply('imageUploaded', image);
+            callback(err, res);
+          });
+        });
+      });
+
+      async.series(tasks, (err, results)=> {
+        console.log('##############################################');
+        console.log(err, results);
+        db.updateRow('dataset', dblocation, { id: results[0].id }, { completed: true }, (succ, msg)=> {
+          if (succ) {
+            console.log('completedddddd');
+          }
+          else {
+            console.log(msg);
+          }
+        });
       });
     });
   });
 };
-
-// uploadImages({project_id: 'b0c9ebc5-ee3b-485b-bf77-2de054cc65c1'}, null);
-
-const upload = (datasetId: string, payload: {name:string, labelId:number, path:string}) => {
+const upload = (datasetId: string, payload: {name:string, labelId:number, path:string}, callback) => {
   const endpoint = `https://api.einstein.ai/v2/vision/datasets/${datasetId}/examples`;
 
   superagent
@@ -372,14 +388,11 @@ const upload = (datasetId: string, payload: {name:string, labelId:number, path:s
     .field('name', payload.name)
     .field('labelId', payload.labelId)
     .then((response) => {
-      console.log(response.body);
-
-      console.log("$$$$$$$$$$$", response);
-      // callback(null, response.body);
+      callback(null, response.body);
+      console.log("$$$$$$$$$$$", response.body);
     })
     .catch((error) => {
       console.log("********", error);
-      // callback(error);
+      callback(error);
     });
 };
-// upload('1259760', { name: 'a819d43f-311e-44db-a7fd-481fda73b26d', labelId: 2, path: './images/a819d43f-311e-44db-a7fd-481fda73b26d.jpg' });
