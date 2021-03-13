@@ -341,22 +341,24 @@ const uploadImages = (arg, event) => {
     _.each(dataset.labelSummary.labels, (value)=> {
       labels[value.name] = value.id;
     });
-    db.getRows('images', dblocation, { project_id: arg.project_id }, (success, images : {id: number, name:string, uuid: string, project_id:string, label:string}[]) => {
-      // console.log(images);
+    db.getRows('images', dblocation, { project_id: arg.project_id }, (success, images : {id: number, name:string, uuid: string, project_id:string, label:string, uploaded: boolean}[]) => {
       const tasks = [];
       _.each(images, (image)=> {
+        if (image.uploaded) { return; }
+
         const payload = { name: image.uuid, labelId: labels[image.label], path: `images/${image.name}` };
         tasks.push((callback) => {
           upload(dataset_id, payload, (err, res) => {
-            db.updateRow('images', dblocation, { id: image.id }, { uploaded: true }, (succ, msg)=> {
+            db.updateRow('images', dblocation, { uuid: image.uuid }, { uploaded: true }, (succ, msg)=> {
               if (succ) {
-                console.log('completedddddd');
+                console.log('**** IMAGE UPLOADED **** ' + image.uuid);
+                event.reply('imageUploaded', image);
               }
               else {
-                console.log(msg);
+                console.log('**** IMAGE NOT UPLOADED **** ' + image.uuid, msg);
               }
             });
-            event.reply('imageUploaded', image);
+
             callback(err, res);
           });
         });
@@ -365,12 +367,12 @@ const uploadImages = (arg, event) => {
       async.series(tasks, (err, results)=> {
         console.log('##############################################');
         console.log(err, results);
-        db.updateRow('dataset', dblocation, { id: results[0].id }, { completed: true }, (succ, msg)=> {
+        db.updateRow('dataset', dblocation, { project_id: arg.project_id }, { completed: true }, (succ, msg)=> {
           if (succ) {
-            console.log('completedddddd');
+            console.log('****** UPDATE DATASET COMPLETED ******');
           }
           else {
-            console.log(msg);
+            console.log('****** UPDATE DATASET ERROR ******', msg);
           }
         });
       });
@@ -396,3 +398,7 @@ const upload = (datasetId: string, payload: {name:string, labelId:number, path:s
       callback(error);
     });
 };
+
+ipcMain.on('uploadImages', (event, arg)=> {
+  uploadImages(arg, event);
+});

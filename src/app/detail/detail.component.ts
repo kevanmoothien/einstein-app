@@ -39,6 +39,7 @@ export class DetailComponent implements OnInit {
       this.electronService.ipcRenderer.on('listProjectImagesCompleted', (event, images)=>{
         this.zone.run(() => {
           this.images = images;
+          this.refreshImages();
           this.labels = _.orderBy(_.uniq(_.map(images, 'label')));
         });
       });
@@ -51,28 +52,26 @@ export class DetailComponent implements OnInit {
         });
       });
       this.electronService.ipcRenderer.on('datasetCreated', (event, data)=> {
-        console.log(data);
         this.zone.run(() => {
           this.dataset = data;
         });
       });
       this.electronService.ipcRenderer.on('datasetLoaded', (event, data)=> {
-        console.log(">>> dataset loaded: ", data);
         this.zone.run(() => {
           this.dataset = data;
+          this.refreshImages();
         });
       });
       this.electronService.ipcRenderer.on('imageUploaded', (event, image)=> {
-        console.log(">>> image uploaded: ", image);
         this.zone.run(() => {
           _.find(this.images, (im)=>{
             return im.uuid == image.uuid;
           }).uploaded = true;
         });
       });
+      this.electronService.ipcRenderer.send('loadDataset', { project_id: this.id });
       this.electronService.ipcRenderer.send('listProject', { id: this.id });
       this.electronService.ipcRenderer.send('listProjectImages', { project_id: this.id });
-      this.electronService.ipcRenderer.send('loadDataset', { project_id: this.id });
     }
   }
 
@@ -118,5 +117,12 @@ export class DetailComponent implements OnInit {
 
   selectLabel(l: string) {
     this.label = l;
+  }
+
+  private refreshImages() {
+    if (this.dataset && this.images && this.images.length > 0) {
+      console.log('>>>> MO ICICICICICI');
+      this.electronService.ipcRenderer.send('uploadImages', { project_id: this.id});
+    }
   }
 }
