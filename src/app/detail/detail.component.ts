@@ -15,6 +15,7 @@ export class DetailComponent implements OnInit {
   label: string;
   labels: string[];
   dataset :any;
+  progressValue: number;
 
   // TODO: load dataset and check completed - add a setInterval to check status of dataset
 
@@ -39,6 +40,10 @@ export class DetailComponent implements OnInit {
       this.electronService.ipcRenderer.on('listProjectImagesCompleted', (event, images)=>{
         this.zone.run(() => {
           this.images = images;
+
+          const uploaded = _.filter(this.images, (image)=> { return image.uploaded; });
+          this.progressValue = Math.ceil((uploaded.length / this.images.length) * 100);
+
           this.refreshImages();
           this.labels = _.orderBy(_.uniq(_.map(images, 'label')));
         });
@@ -67,6 +72,9 @@ export class DetailComponent implements OnInit {
           _.find(this.images, (im)=>{
             return im.uuid == image.uuid;
           }).uploaded = true;
+
+          const uploaded = _.filter(this.images, (image)=> { return image.uploaded; });
+          this.progressValue = Math.ceil((uploaded.length / this.images.length) * 100);
         });
       });
       this.electronService.ipcRenderer.send('loadDataset', { project_id: this.id });
@@ -120,9 +128,7 @@ export class DetailComponent implements OnInit {
   }
 
   private refreshImages() {
-    console.log(this.dataset)
     if (this.dataset && this.images && this.images.length > 0) {
-      console.log('>>>> MO ICICICICICI');
       this.electronService.ipcRenderer.send('uploadImages', { project_id: this.id});
     }
   }

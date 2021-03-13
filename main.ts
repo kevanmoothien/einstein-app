@@ -148,7 +148,6 @@ ipcMain.on("resetDatabase", (event, arg) => {
   const table = [];
 
   _.each(['images', 'dataset', 'project'], (value:string)=> {
-    console.log(value)
     table.push((callback)=>{
       db.clearTable(value, dblocation, (succ, msg)=>{
         console.log(value, succ, msg);
@@ -161,7 +160,6 @@ ipcMain.on("resetDatabase", (event, arg) => {
       });
     });
   });
-  console.log(table);
 
   async.series(table, (err, result)=>{
     if(fs.existsSync(folder)){

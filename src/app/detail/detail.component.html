@@ -1,9 +1,9 @@
 <div class="container-fluid">
   <a routerLink="/">Back to home</a>
   <hr>
-  <h3 class="title">
+  <h4 class="title">
     Project: {{projectName}}
-  </h3>
+  </h4>
 
   <hr>
   <div class="row">
@@ -29,6 +29,7 @@
   </div>
 
   <hr>
+  <mat-progress-bar class="example-margin" [value]="progressValue"></mat-progress-bar>
 
   <h3 *ngIf="images == undefined || images.length == 0">Images not found</h3>
   <div class="row">
