@@ -11,6 +11,8 @@ export class DatasetComponent implements OnInit {
   id :string;
   dataset: any;
   dataset_info: string;
+  model: any;
+  model_info: string;
 
   constructor(
     private route: ActivatedRoute,
@@ -33,6 +35,25 @@ export class DatasetComponent implements OnInit {
       });
     });
     this.electronService.ipcRenderer.send('loadDataset', { project_id: this.id });
+
+    this.electronService.ipcRenderer.on('modelLoaded', (event, data)=> {
+      if (data) {
+        this.zone.run(() => {
+          this.model = data;
+          this.model_info = JSON.stringify(this.model, null, 2);
+        });
+      }
+    });
+    this.electronService.ipcRenderer.send('loadModel', { project_id: this.id });
+
+    this.electronService.ipcRenderer.on('modelCreated', (event, data)=> {
+      if (data) {
+        this.zone.run(() => {
+          this.model = data;
+          console.log('*** model created *** ', this.model);
+        });
+      }
+    });
   }
 
   ngOnInit(): void {
@@ -42,6 +63,10 @@ export class DatasetComponent implements OnInit {
   ngOnDestroy() :void {
     this.electronService.ipcRenderer.removeAllListeners('datasetLoaded');
     this.electronService.ipcRenderer.removeAllListeners('datasetRefreshed');
+    this.electronService.ipcRenderer.removeAllListeners('modelLoaded');
   }
 
+  train() :void {
+    this.electronService.ipcRenderer.send('createModel', { name: this.dataset.name,  project_id: this.id, dataset_id: this.dataset.dataset.id });
+  }
 }

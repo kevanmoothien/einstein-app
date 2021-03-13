@@ -105,6 +105,8 @@ db.createTable('secret', dblocation, () => {
 });
 db.createTable('dataset', dblocation, () => {
 });
+db.createTable('model', dblocation, () => {
+});
 
 
 ipcMain.on("chooseFile", (event, arg) => {
@@ -438,3 +440,47 @@ const refreshDataset = (dataset_id :string, callback) => {
       callback(error);
     });
 };
+
+ipcMain.on('loadModel', (event, arg)=> {
+  db.getRows('model', dblocation, { project_id: arg.project_id }, (success, result) => {
+    console.log('**** LOAD MODEL ***', success);
+    console.log('*** LOAD MODEL ERROR ****', result);
+    if (result.length > 0) {
+      event.reply('modelLoaded', result[0]);
+    }
+  });
+});
+
+
+const trainDataset = (name, dataset_id, callback) => {
+  const endpoint = 'https://api.einstein.ai/v2/vision/train';
+
+  superagent
+    .post(endpoint)
+    .set('Content-type', 'multipart/form-data')
+    .set('Cache-Control', 'no-cache')
+    .set('Authorization', `Bearer ${access_token}`)
+    .field('name', name)
+    .field('datasetId', dataset_id)
+    .then((response) => {
+      console.log(response.body);
+      callback(null, response.body);
+    })
+    .catch((error) => {
+      callback(error);
+    });
+};
+
+ipcMain.on('createModel', (event, arg)=> {
+  console.log(arg)
+  trainDataset(arg.name, arg.dataset_id, (err, result)=> {
+    if (result) {
+      const row = { name: arg.name, project_id: arg.project_id, model: result };
+      db.insertTableContent('model', dblocation, row, (success: boolean, _msg: string) => {
+        if (success) {
+          event.reply('modelCreated', row);
+        }
+      });
+    }
+  });
+});

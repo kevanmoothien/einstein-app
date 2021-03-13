@@ -14,9 +14,9 @@ import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 import { HomeModule } from './home/home.module';
 import { DetailModule } from './detail/detail.module';
 import { DatasetModule } from './dataset/dataset.module';
+import { ModelModule } from "./model/model.module";
 
 import { AppComponent } from './app.component';
-import {MatSliderModule} from "@angular/material/slider";
 import {FaIconLibrary, FontAwesomeModule} from '@fortawesome/angular-fontawesome';
 import {fas} from "@fortawesome/free-solid-svg-icons";
 import {far} from "@fortawesome/free-regular-svg-icons";
@@ -37,8 +37,8 @@ export function HttpLoaderFactory(http: HttpClient): TranslateHttpLoader {
     HomeModule,
     DetailModule,
     DatasetModule,
+    ModelModule,
     AppRoutingModule,
-    MatSliderModule,
     TranslateModule.forRoot({
       loader: {
         provide: TranslateLoader,

@@ -1,6 +1,5 @@
 <div class="container-fluid">
   <a routerLink="/">Back to home</a> |
-
   <a [routerLink]="['/details', id]">Back to project</a>
 </div>
 <hr/>
@@ -10,11 +9,18 @@
     <div class="col-6">
       Dataset Name: <span *ngIf="dataset && dataset.completed">{{dataset.dataset.name}}</span>
     </div>
+    <div class="col-6">
+      <button class="btn btn-outline-success" (click)="train()" *ngIf="!model">Train Dataset</button>
+      <a class="btn btn-outline-success" [routerLink]="['/models', id]" *ngIf="model">View Model</a>
+    </div>
   </div>
+
   <div class="row">
     <div class="col-6">
       <pre>{{dataset_info}}</pre>
     </div>
+    <div class="col-6">
+      <pre>{{model_info}}</pre>
+    </div>
   </div>
-
 </div>
