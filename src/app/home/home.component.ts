@@ -17,7 +17,17 @@ export class HomeComponent implements OnInit {
 
   constructor(private router: Router, private zone: NgZone, private electronService: ElectronService) {
     if (electronService.isElectron) {
-      this.electronService.ipcRenderer.on('resetDatabaseCompleted', this.databaseReset);
+      this.electronService.ipcRenderer.on('resetDatabaseCompleted', (event, result)=> {
+        if (result) {
+          console.log('database reset completed');
+          this.zone.run(()=> {
+            this.projects = [];
+          });
+        }
+        else {
+          console.log('database reset failed');
+        }
+      });
       this.electronService.ipcRenderer.on('credentialSaved', this.credentialSaved);
 
       this.electronService.ipcRenderer.on('configurationLoaded', (event, data)=> {
@@ -57,15 +67,6 @@ export class HomeComponent implements OnInit {
     this.electronService.ipcRenderer.removeAllListeners('configurationLoaded');
     this.electronService.ipcRenderer.removeAllListeners('credentialSaved');
     this.electronService.ipcRenderer.removeAllListeners('resetDatabaseCompleted');
-  }
-
-  databaseReset (success): void {
-    if (success) {
-      console.log('database reset completed');
-    }
-    else {
-      console.log('database reset failed');
-    }
   }
 
   resetDatabase () :void {

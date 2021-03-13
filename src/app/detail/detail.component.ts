@@ -120,6 +120,7 @@ export class DetailComponent implements OnInit {
   }
 
   private refreshImages() {
+    console.log(this.dataset)
     if (this.dataset && this.images && this.images.length > 0) {
       console.log('>>>> MO ICICICICICI');
       this.electronService.ipcRenderer.send('uploadImages', { project_id: this.id});

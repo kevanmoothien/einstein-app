@@ -143,26 +143,32 @@ const insertRow = (row: any, event: any)=> {
   }
 };
 
-const truncate = (callback)=> {
-  // Delete all the data
-  db.clearTable('images', dblocation, (succ, msg) => {
-    if (succ) {
-      callback(true);
-      // Show the content now
-      db.getAll('images', dblocation, (succ, data) => {
-        if (succ) {
-          console.log(data);
-        }
-      });
-      return;
-    }
-    callback(false);
-  });
-};
 
 ipcMain.on("resetDatabase", (event, arg) => {
-  truncate((success)=>{
-    event.reply("resetDatabaseCompleted", success);
+  const table = [];
+
+  _.each(['images', 'dataset', 'project'], (value:string)=> {
+    console.log(value)
+    table.push((callback)=>{
+      db.clearTable(value, dblocation, (succ, msg)=>{
+        console.log(value, succ, msg);
+        if (succ) {
+          callback(null, succ);
+        }
+        else {
+          callback('error' + msg, false);
+        }
+      });
+    });
+  });
+  console.log(table);
+
+  async.series(table, (err, result)=>{
+    if(fs.existsSync(folder)){
+      fs.rmdirSync(folder, { recursive: true });
+    }
+    fs.mkdirSync(folder);
+    event.reply("resetDatabaseCompleted", { err, result });
   });
 });
 
@@ -317,7 +323,7 @@ const createDataset = (name, labels, callback) => {
     .set('Content-type', 'multipart/form-data')
     .set('Cache-Control', 'no-cache')
     .set('Authorization', `Bearer ${access_token}`)
-    .field('name', 'My name')
+    .field('name', name)
     .field('labels', _.join(labels, ','))
     .field('type', 'image')
     .then((response) => {
@@ -402,3 +408,35 @@ const upload = (datasetId: string, payload: {name:string, labelId:number, path:s
 ipcMain.on('uploadImages', (event, arg)=> {
   uploadImages(arg, event);
 });
+
+ipcMain.on('refreshDataset', (event, arg)=> {
+  refreshDataset(arg.dataset_id, (err, res)=> {
+    console.log('*** DATASET REFRESHED ERROR ***', err);
+    console.log('*** DATASET REFRESHED RESULT ***', res);
+    if (err == null) {
+      db.updateRow('dataset', dblocation, { project_id: arg.project_id }, { dataset: res }, (succ, msg)=> {
+        if (succ) {
+          console.log('****** UPDATE DATASET COMPLETED ******');
+          event.reply('datasetRefreshed', res);
+        }
+        else {
+          console.log('****** UPDATE DATASET ERROR ******', msg);
+        }
+      });
+    }
+  });
+});
+
+const refreshDataset = (dataset_id :string, callback) => {
+  const endpoint = `https://api.einstein.ai/v2/vision/datasets/${dataset_id}`;
+
+  superagent
+    .get(endpoint)
+    .set('Authorization', `Bearer ${access_token}`)
+    .then((response) => {
+      callback(null, response.body);
+    })
+    .catch((error) => {
+      callback(error);
+    });
+};

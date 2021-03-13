@@ -3,5 +3,18 @@
 
   <a [routerLink]="['/details', id]">Back to project</a>
 </div>
+<hr/>
 
-<p>dataset works!</p>
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-6">
+      Dataset Name: <span *ngIf="dataset && dataset.completed">{{dataset.dataset.name}}</span>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-6">
+      <pre>{{dataset_info}}</pre>
+    </div>
+  </div>
+
+</div>
