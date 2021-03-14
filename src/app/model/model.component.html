@@ -3,7 +3,50 @@
   <a [routerLink]="['/details', id]">Back to project</a> |
   <a [routerLink]="['/datasets', id]">Back to Dataset</a>
 </div>
-
-<div class="container-fluid">
-  <p>{{id}}</p>
+<hr/>
+<div class="container">
+  <div class="row">
+    <div class="col-6">
+      <h4>Model</h4>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-6">
+      <div class="form-group row">
+        <label class="col-sm-4 col-form-label">Model Name</label>
+        <div class="col-sm-8">
+          <span class="form-control-plaintext">{{model.name}}</span>
+        </div>
+      </div>
+      <div class="form-group row">
+        <label class="col-sm-4 col-form-label">Model Id</label>
+        <div class="col-sm-8">
+          <span class="form-control-plaintext">{{model.modelId}}</span>
+        </div>
+      </div>
+      <div class="form-group row">
+        <label class="col-sm-4 col-form-label">Status</label>
+        <div class="col-sm-8">
+          <span class="form-control-plaintext">{{model.status}}</span>
+        </div>
+      </div>
+      <div class="form-group row">
+        <label class="col-sm-4 col-form-label">Progress</label>
+        <div class="col-sm-8">
+          <span class="form-control-plaintext">{{progress}}%</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-12">
+      <mat-progress-bar [value]="progress"></mat-progress-bar>
+    </div>
+  </div>
+  <hr/>
+  <div class="row">
+    <div class="col-12">
+      <h4>Model Metrics</h4>
+    </div>
+  </div>
 </div>

@@ -43,12 +43,6 @@
     </div>
     <div class="col-6">
       <div class="form-group row">
-        <label class="col-sm-4 col-form-label">Number of Duplicates</label>
-        <div class="col-sm-8">
-          <span class="form-control-plaintext">{{payload.numOfDuplicates}}</span>
-        </div>
-      </div>
-      <div class="form-group row">
         <label class="col-sm-4 col-form-label">Total Examples</label>
         <div class="col-sm-8">
           <span class="form-control-plaintext">{{payload.totalExamples}}</span>
@@ -58,6 +52,12 @@
         <label class="col-sm-4 col-form-label">Total Labels</label>
         <div class="col-sm-8">
           <span class="form-control-plaintext">{{payload.totalLabels}}</span>
+        </div>
+      </div>
+      <div class="form-group row">
+        <label class="col-sm-4 col-form-label">Number of Duplicates</label>
+        <div class="col-sm-8">
+          <span class="form-control-plaintext">{{payload.numOfDuplicates}}</span>
         </div>
       </div>
     </div>
@@ -85,12 +85,12 @@
     </div>
   </div>
 
-  <!--<div class="row">
+  <div class="row">
     <div class="col-6">
       <pre>{{dataset_info}}</pre>
     </div>
     <div class="col-6">
       <pre>{{model_info}}</pre>
     </div>
-  </div>-->
+  </div>
 </div>
