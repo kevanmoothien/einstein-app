@@ -15,6 +15,6 @@ import {MatProgressBarModule} from '@angular/material/progress-bar';
 @NgModule({
   declarations: [PageNotFoundComponent, WebviewDirective, ThumbnailComponent],
   imports: [CommonModule, TranslateModule, FormsModule, MatProgressSpinnerModule, FontAwesomeModule, MatProgressBarModule],
-  exports: [TranslateModule, WebviewDirective, FormsModule, PageNotFoundComponent, ThumbnailComponent, MatProgressBarModule]
+  exports: [TranslateModule, WebviewDirective, FormsModule, PageNotFoundComponent, ThumbnailComponent, MatProgressBarModule, MatProgressSpinnerModule]
 })
 export class SharedModule {}

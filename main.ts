@@ -472,13 +472,42 @@ const trainDataset = (name, dataset_id, callback) => {
 };
 
 ipcMain.on('createModel', (event, arg)=> {
-  console.log(arg)
   trainDataset(arg.name, arg.dataset_id, (err, result)=> {
     if (result) {
       const row = { name: arg.name, project_id: arg.project_id, model: result };
       db.insertTableContent('model', dblocation, row, (success: boolean, _msg: string) => {
         if (success) {
           event.reply('modelCreated', row);
+        }
+      });
+    }
+  });
+});
+
+const trainingStatus = (modelId :string, callback) => {
+  const endpoint = `https://api.einstein.ai/v2/vision/train/${modelId}`;
+
+  superagent
+    .get(endpoint)
+    .set('Authorization', `Bearer ${access_token}`)
+    .then((response) => {
+      console.log('*** TRAINING STATUS *** ', response.body);
+      callback(null, response.body);
+    })
+    .catch((error) => {
+      console.log('*** TRAINING STATUS ERROR *** ', error);
+      callback(error);
+    });
+};
+
+ipcMain.on('modelStatus', (event, arg)=> {
+  console.log('>>>>>>>>>> BELLA: ', arg)
+  trainingStatus(arg.modelId, (err, result)=> {
+    if (result) {
+      const row = { project_id: arg.project_id };
+      db.updateRow('model', dblocation, { project_id: arg.project_id }, { model: result }, (success, msg)=> {
+        if (success) {
+          event.reply('modelStatusUpdated', result);
         }
       });
     }

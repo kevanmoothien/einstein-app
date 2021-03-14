@@ -1,6 +1,8 @@
 import {Component, NgZone, OnInit} from '@angular/core';
 import {ActivatedRoute} from "@angular/router";
 import {ElectronService} from "../core/services";
+import {ThemePalette} from "@angular/material/core";
+import {collectExternalReferences} from "@angular/compiler";
 
 @Component({
   selector: 'app-model',
@@ -10,15 +12,17 @@ import {ElectronService} from "../core/services";
 export class ModelComponent implements OnInit {
   private id: string;
   record: any;
-  model: { modelId:string, progress:number, status:string, name:string };
+  model: { modelId:string, progress:number, status:string, name:string, failureMsg:string };
   progress: number;
+  spinner = true;
+  color: ThemePalette = 'primary';
 
   constructor(
     private route: ActivatedRoute,
     private electronService: ElectronService,
     private zone: NgZone
   ) {
-    this.model = { modelId: undefined, progress: 0, status: 'UNKNOWN', name: 'Unknown' };
+    this.model = { modelId: undefined, progress: 0, status: 'UNKNOWN', name: 'Unknown', failureMsg: undefined };
     this.zone.run(() => {
       this.id = this.route.snapshot.paramMap.get('id');
     });
@@ -26,16 +30,73 @@ export class ModelComponent implements OnInit {
       if (data) {
         this.zone.run(() => {
           this.record = data;
-          console.log('************** ', this.record);
           this.model = this.record.model;
-          this.progress = this.model.progress * 100;
+          this.reloadModel(10000);
         });
       }
     });
     this.electronService.ipcRenderer.send('loadModel', { project_id: this.id });
+
+    this.electronService.ipcRenderer.on('modelStatusUpdated', (event, data)=> {
+      if (data) {
+        this.zone.run(() => {
+          this.model = data;
+          this.reloadModel(60000);
+        });
+      }
+    });
   }
 
   ngOnInit(): void {
   }
 
+  ngOnDestroy() :void {
+    this.electronService.ipcRenderer.removeAllListeners('modelLoaded');
+    this.electronService.ipcRenderer.removeAllListeners('modelStatusUpdated');
+  }
+
+  reloadModel(timeout) :void {
+    if (this.model.status == 'QUEUED' || this.model.status == 'RUNNING') {
+      setTimeout(()=>{
+        this.queryModelStatus();
+      }, 60000);
+    }
+    else {
+      this.spinner = false;
+    }
+    if (this.model.status == 'FAILURE') {
+      this.color = 'warn';
+    }
+    this.progress = this.model.progress * 100;
+  }
+
+  queryModelStatus() :void {
+    this.electronService.ipcRenderer.send('modelStatus', { project_id: this.id, modelId: this.model.modelId });
+  }
 }
+
+
+/*
+{
+    name: 'lov',
+    project_id: 'ff2a4179-be77-4831-bbdf-18e4993c757c',
+    model: {
+      datasetId: 1259904,
+      datasetVersionId: 0,
+      name: 'lov',
+      status: 'QUEUED',
+      progress: 0,
+      createdAt: '2021-03-13T18:17:23.000+0000',
+      updatedAt: '2021-03-13T18:17:23.000+0000',
+      modelId: '753XMKLQDT6Z5OWLFQJ7XF3P2E',
+      queuePosition: 2,
+      modelType: 'image',
+      language: 'N/A',
+      object: 'training',
+      trainParams: {},
+      trainStats: null
+    },
+    id: 1615659443902
+  }
+
+ */
