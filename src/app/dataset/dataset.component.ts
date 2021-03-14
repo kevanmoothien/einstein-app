@@ -11,6 +11,16 @@ export class DatasetComponent implements OnInit {
   id :string;
   dataset: any;
   dataset_info: string;
+  payload: {
+    id:number,
+    name:string,
+    statusMsg:string,
+    totalExamples:number,
+    totalLabels:number,
+    available:boolean,
+    numOfDuplicates:number,
+    labelSummary: { labels:{id:number, name:string, numExamples:number}[] }
+  };
   model: any;
   model_info: string;
 
@@ -19,11 +29,13 @@ export class DatasetComponent implements OnInit {
     private electronService: ElectronService,
     private zone: NgZone
   ) {
+    this.payload = { id: 0, name: 'unknown', statusMsg: 'QUEUE', totalExamples: 0, totalLabels: 0, available: false, numOfDuplicates: 0, labelSummary: { labels: [] } };
     this.id = this.route.snapshot.paramMap.get('id');
     this.electronService.ipcRenderer.on('datasetLoaded', (event, data)=> {
       this.zone.run(() => {
         this.dataset = data;
         console.log("***** ", this.dataset);
+        this.payload = this.dataset.dataset;
         this.dataset_info = JSON.stringify(this.dataset.dataset, null, 2);
         this.electronService.ipcRenderer.send('refreshDataset', { dataset_id: this.dataset.dataset.id, project_id: this.dataset.project_id });
       });
@@ -32,6 +44,7 @@ export class DatasetComponent implements OnInit {
       console.log('>>>>>> dataset refreshed ', data);
       this.zone.run(() => {
         this.dataset_info = JSON.stringify(data, null, 2);
+        this.payload = this.dataset.dataset;
       });
     });
     this.electronService.ipcRenderer.send('loadDataset', { project_id: this.id });

@@ -4,23 +4,93 @@
 </div>
 <hr/>
 
-<div class="container-fluid">
+<div class="container">
   <div class="row">
     <div class="col-6">
-      Dataset Name: <span *ngIf="dataset && dataset.completed">{{dataset.dataset.name}}</span>
+      <h4>Dataset</h4>
     </div>
     <div class="col-6">
-      <button class="btn btn-outline-success" (click)="train()" *ngIf="!model">Train Dataset</button>
-      <a class="btn btn-outline-success" [routerLink]="['/models', id]" *ngIf="model">View Model</a>
+      <button class="btn btn-primary float-right" (click)="train()" *ngIf="!model">Train Dataset</button>
+      <a class="btn btn-primary float-right" [routerLink]="['/models', id]" *ngIf="model">View Model</a>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-6">
+      <div class="form-group row">
+        <label class="col-sm-4 col-form-label">Dataset Id</label>
+        <div class="col-sm-8">
+          <span class="form-control-plaintext">{{payload.id}}</span>
+        </div>
+      </div>
+      <div class="form-group row">
+        <label class="col-sm-4 col-form-label">Dataset Name</label>
+        <div class="col-sm-8">
+          <span class="form-control-plaintext">{{payload.name}}</span>
+        </div>
+      </div>
+      <div class="form-group row">
+        <label class="col-sm-4 col-form-label">Status</label>
+        <div class="col-sm-8">
+          <span class="form-control-plaintext">{{payload.statusMsg}}</span>
+        </div>
+      </div>
+      <div class="form-group row">
+        <label class="col-sm-4 col-form-label">Available</label>
+        <div class="col-sm-8">
+          <span class="form-control-plaintext">{{payload.available}}</span>
+        </div>
+      </div>
+    </div>
+    <div class="col-6">
+      <div class="form-group row">
+        <label class="col-sm-4 col-form-label">Number of Duplicates</label>
+        <div class="col-sm-8">
+          <span class="form-control-plaintext">{{payload.numOfDuplicates}}</span>
+        </div>
+      </div>
+      <div class="form-group row">
+        <label class="col-sm-4 col-form-label">Total Examples</label>
+        <div class="col-sm-8">
+          <span class="form-control-plaintext">{{payload.totalExamples}}</span>
+        </div>
+      </div>
+      <div class="form-group row">
+        <label class="col-sm-4 col-form-label">Total Labels</label>
+        <div class="col-sm-8">
+          <span class="form-control-plaintext">{{payload.totalLabels}}</span>
+        </div>
+      </div>
     </div>
   </div>
 
+  <h5>LABEL SUMMARY</h5>
   <div class="row">
+    <div class="col-12">
+      <table class="table table-hover">
+        <thead>
+        <tr>
+          <th scope="col">Id</th>
+          <th scope="col">Label Name</th>
+          <th scope="col">Number of Examples</th>
+        </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let label of payload.labelSummary.labels">
+            <th scope="row">{{label.id}}</th>
+            <td>{{label.name}}</td>
+            <td>{{label.numExamples}}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!--<div class="row">
     <div class="col-6">
       <pre>{{dataset_info}}</pre>
     </div>
     <div class="col-6">
       <pre>{{model_info}}</pre>
     </div>
-  </div>
+  </div>-->
 </div>
