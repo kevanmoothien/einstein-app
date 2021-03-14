@@ -9,7 +9,7 @@ import {ThemePalette} from "@angular/material/core";
   styleUrls: ['./model.component.scss']
 })
 export class ModelComponent implements OnInit {
-  private id: string;
+  id: string;
   record: any;
   model: { modelId:string, progress:number, status:string, name:string, failureMsg:string };
   progress: number;
