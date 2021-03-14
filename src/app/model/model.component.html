@@ -48,7 +48,7 @@
   </div>
   <div class="row">
     <div class="col-12">
-      <mat-progress-bar [value]="progress" color="warn"></mat-progress-bar>
+      <mat-progress-bar [value]="progress" [color]="color"></mat-progress-bar>
     </div>
   </div>
   <hr/>
@@ -56,5 +56,38 @@
     <div class="col-12">
       <h4>Playground</h4>
     </div>
+    <div class="col-12" *ngIf="model.status != 'SUCCEEDED' && model.status != 'FAILURE'">
+      <h5>Will be available when model training is completed</h5>
+    </div>
+    <div class="col-12" *ngIf="model.status == 'FAILURE'">
+      <h5>Model training has failed. Please review failure message.</h5>
+    </div>
   </div>
+  <div class="row">
+    <div class="col-12">
+      <button class="btn btn-success" (click)="predictImage()">Upload Image for prediction</button>
+      &nbsp;
+      <mat-spinner diameter="25" class="model-spinner" *ngIf="predictionInProgress"></mat-spinner>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-12">
+      <table class="table table-hover">
+        <thead>
+        <tr>
+          <th scope="col">Label</th>
+          <th scope="col">Probability</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr *ngFor="let probability of prediction.probabilities">
+          <th scope="row">{{probability.label}}</th>
+          <td>{{probability.probability * 100}}</td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
 </div>

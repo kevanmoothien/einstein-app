@@ -501,15 +501,52 @@ const trainingStatus = (modelId :string, callback) => {
 };
 
 ipcMain.on('modelStatus', (event, arg)=> {
-  console.log('>>>>>>>>>> BELLA: ', arg)
   trainingStatus(arg.modelId, (err, result)=> {
     if (result) {
-      const row = { project_id: arg.project_id };
       db.updateRow('model', dblocation, { project_id: arg.project_id }, { model: result }, (success, msg)=> {
         if (success) {
           event.reply('modelStatusUpdated', result);
         }
       });
     }
+  });
+});
+
+const predictImage = (modelId, callback) => {
+  const result = dialog.showOpenDialog(win, {
+    title: "Choose Images for Prediction",
+    properties: ["openFile"],
+    filters: [{ name: "Images", extensions: ["png","jpg","jpeg"] }]
+  });
+
+  result.then(({canceled, filePaths, bookmarks}) => {
+    if (canceled) {
+      return callback('no file selected');
+    }
+
+    const filePath = filePaths[0];
+    const endpoint = 'https://api.einstein.ai/v2/vision/predict';
+
+    superagent
+      .post(endpoint)
+      .attach('sampleContent', filePath)
+      .set('Cache-Control', 'no-cache')
+      .set('Authorization', `Bearer ${access_token}`)
+      .field('modelId', modelId)
+      .then((response) => {
+        callback(null, response.body);
+        console.log("$$$$$$$$$$$", response.body);
+      })
+      .catch((error) => {
+        console.log("********", error);
+        callback(error);
+      });
+  });
+};
+
+ipcMain.on('predictImage', (event, arg)=> {
+  predictImage(arg.modelId, (err, result)=> {
+    console.log(result, err)
+    event.reply('predictImageCompleted', result);
   });
 });

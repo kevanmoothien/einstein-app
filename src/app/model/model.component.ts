@@ -2,7 +2,6 @@ import {Component, NgZone, OnInit} from '@angular/core';
 import {ActivatedRoute} from "@angular/router";
 import {ElectronService} from "../core/services";
 import {ThemePalette} from "@angular/material/core";
-import {collectExternalReferences} from "@angular/compiler";
 
 @Component({
   selector: 'app-model',
@@ -16,6 +15,8 @@ export class ModelComponent implements OnInit {
   progress: number;
   spinner = true;
   color: ThemePalette = 'primary';
+  predictionInProgress = false;
+  prediction: { probabilities: {label:string, probability:number}[], message:string };
 
   constructor(
     private route: ActivatedRoute,
@@ -23,6 +24,7 @@ export class ModelComponent implements OnInit {
     private zone: NgZone
   ) {
     this.model = { modelId: undefined, progress: 0, status: 'UNKNOWN', name: 'Unknown', failureMsg: undefined };
+    this.prediction = { message: undefined, probabilities: [] };
     this.zone.run(() => {
       this.id = this.route.snapshot.paramMap.get('id');
     });
@@ -45,6 +47,13 @@ export class ModelComponent implements OnInit {
         });
       }
     });
+
+    this.electronService.ipcRenderer.on('predictImageCompleted', (event, data)=> {
+      this.zone.run(() => {
+        this.prediction = data;
+        this.predictionInProgress = false;
+      });
+    });
   }
 
   ngOnInit(): void {
@@ -53,13 +62,14 @@ export class ModelComponent implements OnInit {
   ngOnDestroy() :void {
     this.electronService.ipcRenderer.removeAllListeners('modelLoaded');
     this.electronService.ipcRenderer.removeAllListeners('modelStatusUpdated');
+    this.electronService.ipcRenderer.removeAllListeners('predictImageCompleted');
   }
 
   reloadModel(timeout) :void {
     if (this.model.status == 'QUEUED' || this.model.status == 'RUNNING') {
       setTimeout(()=>{
         this.queryModelStatus();
-      }, 60000);
+      }, timeout);
     }
     else {
       this.spinner = false;
@@ -73,30 +83,9 @@ export class ModelComponent implements OnInit {
   queryModelStatus() :void {
     this.electronService.ipcRenderer.send('modelStatus', { project_id: this.id, modelId: this.model.modelId });
   }
-}
 
-
-/*
-{
-    name: 'lov',
-    project_id: 'ff2a4179-be77-4831-bbdf-18e4993c757c',
-    model: {
-      datasetId: 1259904,
-      datasetVersionId: 0,
-      name: 'lov',
-      status: 'QUEUED',
-      progress: 0,
-      createdAt: '2021-03-13T18:17:23.000+0000',
-      updatedAt: '2021-03-13T18:17:23.000+0000',
-      modelId: '753XMKLQDT6Z5OWLFQJ7XF3P2E',
-      queuePosition: 2,
-      modelType: 'image',
-      language: 'N/A',
-      object: 'training',
-      trainParams: {},
-      trainStats: null
-    },
-    id: 1615659443902
+  predictImage() :void {
+    this.predictionInProgress = true;
+    this.electronService.ipcRenderer.send('predictImage', { project_id: this.id, modelId: this.model.modelId });
   }
-
- */
+}
