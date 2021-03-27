@@ -34,7 +34,7 @@ function createWindow(): BrowserWindow {
 
   if (serve) {
 
-    win.webContents.openDevTools();
+    // win.webContents.openDevTools();
 
     require('electron-reload')(__dirname, {
       electron: require(`${__dirname}/node_modules/electron`)
@@ -145,11 +145,10 @@ const insertRow = (row: any, event: any)=> {
   }
 };
 
-
 ipcMain.on("resetDatabase", (event, arg) => {
   const table = [];
 
-  _.each(['images', 'dataset', 'project'], (value:string)=> {
+  _.each(['images', 'dataset', 'project', 'model'], (value:string)=> {
     table.push((callback)=>{
       db.clearTable(value, dblocation, (succ, msg)=>{
         console.log(value, succ, msg);
@@ -180,6 +179,7 @@ ipcMain.on("saveCredentials", (event, arg) => {
         console.log("Success: " + success);
         console.log("Message: " + msg);
         if (success) {
+          generateAccessToken()
           event.reply("credentialSaved", success);
         }
       });
@@ -285,7 +285,7 @@ const generateAccessToken = () => {
           .set('Content-type', 'application/x-www-form-urlencoded')
           .send({ scope: 'offline', assertion: token, grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer' })
           .then((response) => {
-            console.log(response.body);
+            // console.log(response.body);
             access_token = response.body.access_token;
           }).catch(console.error);
       }
